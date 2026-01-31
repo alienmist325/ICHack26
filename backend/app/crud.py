@@ -17,9 +17,48 @@ from app.schemas import (
     VoteType,
 )
 
+# Type hint for RightmoveProperty to avoid circular imports
+RightmoveProperty = Any
+
 # ============================================================================
 # Property CRUD operations
 # ============================================================================
+
+
+def rightmove_property_to_create(
+    rightmove_prop: RightmoveProperty,
+) -> PropertyCreate:
+    """Convert a RightmoveProperty to PropertyCreate for database storage.
+
+    Maps Rightmove API fields to our database schema.
+    """
+    return PropertyCreate(
+        rightmove_id=rightmove_prop.id,
+        listing_title=rightmove_prop.title,
+        listing_url=rightmove_prop.url,
+        full_address=rightmove_prop.displayAddress,
+        latitude=rightmove_prop.coordinates.latitude,
+        longitude=rightmove_prop.coordinates.longitude,
+        property_type=rightmove_prop.propertyType,
+        listing_type=rightmove_prop.type,
+        bedrooms=rightmove_prop.bedrooms,
+        bathrooms=rightmove_prop.bathrooms,
+        size=f"{rightmove_prop.sizeSqFeetMin}-{rightmove_prop.sizeSqFeetMax} sq ft"
+        if (rightmove_prop.sizeSqFeetMin or rightmove_prop.sizeSqFeetMax)
+        else None,
+        price=float(rightmove_prop.price),
+        text_description=rightmove_prop.description,
+        images=rightmove_prop.images,
+        agent_name=rightmove_prop.agent,
+        agent_phone=rightmove_prop.agentPhone,
+        agent_profile_url=rightmove_prop.agentProfileUrl,
+        display_status=rightmove_prop.displayStatus
+        if rightmove_prop.displayStatus
+        else None,
+        listing_update_reason=rightmove_prop.listingUpdateReason,
+        first_visible_date=rightmove_prop.firstVisibleDate.isoformat(),
+        listing_update_date=rightmove_prop.listingUpdateDate.isoformat(),
+    )
 
 
 def _serialize_json_field(value: Any) -> Optional[str]:
