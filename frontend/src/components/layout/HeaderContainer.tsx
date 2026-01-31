@@ -1,8 +1,9 @@
 import styled from "styled-components";
+import { rightMoveBlue } from "../../constants";
 
 export const HeaderContainer = styled.header`
   flex: 0 0 auto;
-  background-color: #49dfb5;
+  background-color: ${rightMoveBlue};
   color: white;
   z-index: 10;
   display: flex;
