@@ -1,85 +1,84 @@
-import { ButtonHTMLAttributes, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import styled from "styled-components";
+import { HeaderContainer } from "./components/layout/HeaderContainer";
+import { FooterContainer } from "./components/layout/FooterContainer";
+import { HouseSearch } from "./components/screens/HouseSearch";
+// import { ExampleScreen } from "./components/screens/ExampleScreen";
+import {
+  FilterContext,
+  useSetupFilter,
+} from "./components/hooks/useSetupFilter";
+import {
+  GlobalDataContext,
+  useSetupGlobalData,
+} from "./components/hooks/useSetupGlobalData";
 
-function Button(props: ButtonHTMLAttributes<HTMLButtonElement> & SizeProps) {
-  return <ButtonBox size={props.size ?? 1}> {props.children} </ButtonBox>;
-}
+import { GiMushroomHouse } from "react-icons/gi";
+import { NavigationPane } from "./components/layout/NavigationPane";
+import { useState } from "react";
+import { rightMoveBlue } from "./constants";
+import { Button } from "./components/layout/Button";
 
-interface SizeProps {
-  size?: number;
-}
-
-const BottomRightCorner = styled.div`
+const AppContainer = styled.div`
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   position: fixed;
-  right: 0;
-  bottom: 0;
-  margin: 0.75rem;
+  top: 0;
+  left: 0;
 `;
 
-const TopLeftCorner = styled.div`
-  position: fixed;
-  left: 0;
+const SidebarButton = styled(Button)`
+  background-color: ${rightMoveBlue};
+`;
+
+const TopRightCorner = styled.div`
+  position: absolute;
+  right: 0;
   top: 0;
   margin: 0.75rem;
 `;
 
-const ButtonBox = styled.button<SizeProps>`
-  font-size: ${(props) => props.size}rem;
-  margin: 0.5rem;
-`;
-
-const VerticalList = styled.div`
+const CenteredContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 `;
 
 function App() {
-  const [count, setCount] = useState(0);
+  const filter = useSetupFilter();
+  const globalData = useSetupGlobalData();
+
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <VerticalList>
-        <Button size={5}>A thing</Button>
-        <Button>A thing</Button>
-        <Button>A thing</Button>
-        <Button>A thing</Button>
-        <Button>A thing</Button>
-        <Button>A thing</Button>
-        <Button>A thing</Button>
-        <Button>A thing</Button>
-      </VerticalList>
+    <GlobalDataContext.Provider value={globalData}>
+      <FilterContext.Provider value={filter}>
+        <AppContainer>
+          <HeaderContainer>
+            <>
+              <CenteredContainer>
+                <GiMushroomHouse />
+                Not Rightmove
+              </CenteredContainer>
 
-      <BottomRightCorner>
-        <Button>@</Button>
-      </BottomRightCorner>
-
-      <TopLeftCorner>
-        <Button>£</Button>
-      </TopLeftCorner>
-    </>
+              <TopRightCorner>
+                <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
+              </TopRightCorner>
+            </>
+          </HeaderContainer>
+          <NavigationPane
+            leftSidebarOpen={leftSidebarOpen}
+            toggleLeftSidebar={toggleLeftSidebar}
+          ></NavigationPane>
+          <HouseSearch></HouseSearch>
+          <FooterContainer> Made for IC Hack 2026 </FooterContainer>
+        </AppContainer>
+      </FilterContext.Provider>
+    </GlobalDataContext.Provider>
   );
 }
 
