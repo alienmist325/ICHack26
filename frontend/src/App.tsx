@@ -13,6 +13,8 @@ import {
   useSetupGlobalData,
 } from "./components/hooks/useSetupGlobalData";
 
+import { GiMushroomHouse } from "react-icons/gi";
+
 const AppContainer = styled.div`
   width: 100vw;
   height: 100vh;
@@ -31,7 +33,9 @@ function App() {
     <GlobalDataContext.Provider value={globalData}>
       <FilterContext.Provider value={filter}>
         <AppContainer>
-          <HeaderContainer>Not Rightmove</HeaderContainer>
+          <HeaderContainer>
+            <GiMushroomHouse /> Not Rightmove
+          </HeaderContainer>
           <HouseSearch></HouseSearch>
           <FooterContainer> Made for IC Hack 2026 </FooterContainer>
         </AppContainer>

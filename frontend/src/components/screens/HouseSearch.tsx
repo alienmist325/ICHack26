@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Button } from "../layout/Button";
 import reactLogo from "../../assets/react.svg";
 import viteLogo from "/vite.svg";
+import { useGlobalData } from "../hooks/useGlobalData";
+import { HouseCard } from "../layout/HouseCard";
 
 const ContentArea = styled.div`
   flex: 1;
@@ -80,59 +82,15 @@ export function HouseSearch() {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
 
   const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
+  const{ houses } = useGlobalData();
 
   return (
     <ContentArea>
       <Scrollable>
         <VerticalList>
-          <Button size={3}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5rem' }}>
-              <div style={{ fontSize: '2em' }}>🏠</div>
-              <div>
-                <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
-                  Eleanor's Primary Mansion
-                </div>
-                <ul style={{ fontSize: '0.5em', margin: '0.5rem 0', paddingLeft: '1rem', listStyleType: 'none' }}>
-                  <li>8 Bedrooms</li>
-                  <li>8 Bathrooms</li>
-                  <li>Garden View</li>
-                  <li>Modern Amenities</li>
-                </ul>
-              </div>
-            </div>
-          </Button>
-          <Button size={3}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5rem' }}>
-              <div style={{ fontSize: '2em' }}>🏠</div>
-              <div>
-                <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
-                  Eleanor's Secondary Mansion
-                </div>
-                <ul style={{ fontSize: '0.5em', margin: '0.5rem 0', paddingLeft: '1rem', listStyleType: 'none' }}>
-                  <li>5 Bedrooms</li>
-                  <li>3 Bathrooms</li>
-                  <li>Garden View</li>
-                  <li>Modern Amenities</li>
-                </ul>
-              </div>
-            </div>
-          </Button>
-          <Button size={3}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5rem' }}>
-              <div style={{ fontSize: '2em' }}>🏠</div>
-              <div>
-                <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
-                  Eleanor's Tertiary Mansion
-                </div>
-                <ul style={{ fontSize: '0.5em', margin: '0.5rem 0', paddingLeft: '1rem', listStyleType: 'none' }}>
-                  <li>2 Bedrooms</li>
-                  <li>1 Bathrooms</li>
-                  <li>Garden View</li>
-                  <li>Modern Amenities</li>
-                </ul>
-              </div>
-            </div>
-          </Button>
+            {houses.map(house => (
+              <HouseCard key={house.id} house={house} />
+            ))}
         </VerticalList>
       </Scrollable>
 
