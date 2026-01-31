@@ -2,10 +2,9 @@
 
 import logging
 import re
-from typing import Optional, Tuple
-from datetime import datetime
+from typing import Tuple
 
-from .models import VerificationStatus, VerificationResult, ElevenLabsCallResponse
+from .models import VerificationStatus, VerificationResult
 from .elevenlabs_client import ElevenLabsClient
 from .jobs import VerificationJob
 

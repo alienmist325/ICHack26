@@ -1,10 +1,7 @@
 """Integration tests for property verification API endpoints."""
 
 import pytest
-import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime
-from httpx import AsyncClient
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from app.main import app

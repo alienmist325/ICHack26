@@ -1,9 +1,7 @@
 """Unit tests for property verification service."""
 
 import pytest
-import asyncio
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 from services.verification.service import PropertyVerificationService
 from services.verification.models import VerificationStatus

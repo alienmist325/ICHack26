@@ -1,9 +1,7 @@
 # backend/app/main.py
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import List, Optional
-import uuid
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -76,7 +74,7 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize database, routing service, and verification job queue
     global _routing_service
     init_db()
-    
+
     # Initialize routing service
     _routing_service = RoutingService()
     logger.info("Routing service initialized at app startup")
@@ -172,7 +170,7 @@ async def lifespan(app: FastAPI):
     # Shutdown: Clean up routing service and job queue
     _routing_service = None
     logger.info("Routing service shutdown")
-    
+
     try:
         if job_queue:
             await job_queue.stop()
