@@ -223,6 +223,9 @@ def upsert_property(property_data: PropertyCreate) -> tuple[Property, bool]:
     # Convert PropertyCreate to PropertyUpdate
     update_data = PropertyUpdate(**property_data.model_dump())
     updated = update_property(existing.id, update_data)
+    if updated is None:
+        # Should not happen in normal operation, but handle it
+        return existing, False
     return updated, False
 
 
