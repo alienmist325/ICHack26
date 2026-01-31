@@ -59,7 +59,7 @@ def main():
     # Get property with score
     print("Calculating property score...")
     prop_with_score = crud.get_property_with_score(property_obj.id)
-    print(f"✓ Property score calculated:")
+    print("✓ Property score calculated:")
     print(f"  Upvotes: {prop_with_score.upvotes}")
     print(f"  Downvotes: {prop_with_score.downvotes}")
     print(f"  Score: {prop_with_score.score:.2f}\n")
