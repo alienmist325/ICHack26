@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "../layout/Button";
 import reactLogo from "../../assets/react.svg";
 import viteLogo from "/vite.svg";
+import { useFilter } from "../hooks/useFilter";
 
 const ContentArea = styled.div`
   flex: 1;
@@ -35,6 +36,8 @@ const VerticalList = styled.div`
 export function ExampleScreen() {
   const [count, setCount] = useState(0);
 
+  const { maxPrice } = useFilter();
+
   return (
     <ContentArea>
       <Scrollable>
@@ -60,6 +63,7 @@ export function ExampleScreen() {
         </p>
         <VerticalList>
           <Button size={5}>A thing</Button>
+          <Button>Max price is {maxPrice}</Button>
           <Button>A thing</Button>
           <Button>A thing</Button>
           <Button>A thing</Button>
