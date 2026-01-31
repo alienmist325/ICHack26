@@ -104,6 +104,11 @@ def init_db() -> None:
                 -- Nearby amenities
                 nearest_schools TEXT,  -- JSON array
                 
+                -- Verification status
+                verification_status TEXT DEFAULT 'pending' CHECK(verification_status IN ('pending', 'processing', 'available', 'sold', 'rented', 'unclear', 'pending_review', 'failed')),
+                last_verified_at TEXT,
+                verification_notes TEXT,
+
                 -- Timestamps
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -117,6 +122,25 @@ def init_db() -> None:
                 property_id INTEGER NOT NULL,
                 vote_type TEXT NOT NULL CHECK(vote_type IN ('upvote', 'downvote')),
                 voted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Verification logs table - audit trail for property verification calls
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS verification_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                property_id INTEGER NOT NULL UNIQUE,
+                call_timestamp TEXT,
+                call_duration_seconds INTEGER,
+                agent_phone TEXT,
+                agent_response TEXT,
+                verification_status TEXT CHECK(verification_status IN ('available', 'sold', 'rented', 'unclear', 'pending_review', 'failed')),
+                confidence_score REAL,
+                notes TEXT,
+                error_message TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 
                 FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
             )
@@ -166,6 +190,21 @@ def init_db() -> None:
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_ratings_voted_at 
             ON ratings(voted_at)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_verification_logs_property_id 
+            ON verification_logs(property_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_verification_logs_status 
+            ON verification_logs(verification_status)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_verification_logs_created_at 
+            ON verification_logs(created_at)
         """)
 
         # Create trigger to update updated_at timestamp

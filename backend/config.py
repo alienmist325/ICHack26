@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
-    """Configuration for Rightmove scraper and routing services."""
+    """Configuration for Rightmove scraper, routing, and verification services."""
 
     # Apify configuration
     apify_api_key: str = Field(
@@ -36,6 +36,25 @@ class Settings(BaseSettings):
         description="Timeout for routing API requests in seconds",
     )
 
+    # ElevenLabs verification settings
+    elevenlabs_api_key: Optional[str] = Field(
+        default="", description="ElevenLabs API key for property verification calls"
+    )
+    elevenlabs_agent_id: Optional[str] = Field(
+        default=None, description="ElevenLabs Agent ID for property verification"
+    )
+    elevenlabs_phone_number: Optional[str] = Field(
+        default=None, description="Twilio/ElevenLabs phone number for outbound calls"
+    )
+
+    # Verification service tuning parameters
+    verification_call_timeout: int = Field(
+        default=600, description="Maximum call duration in seconds (default: 10 min)"
+    )
+    verification_max_concurrent_calls: int = Field(
+        default=5, description="Maximum concurrent verification calls (default: 5)"
+    )
+
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -47,6 +66,14 @@ class Settings(BaseSettings):
         """Initialize settings and log configuration load."""
         super().__init__(**kwargs)
         logger.info("Configuration loaded successfully")
+
+        # Log verification setup status
+        if self.elevenlabs_api_key:
+            logger.info("ElevenLabs verification service configured")
+        else:
+            logger.warning(
+                "ElevenLabs API key not configured - verification service disabled"
+            )
 
 
 # Create a singleton instance

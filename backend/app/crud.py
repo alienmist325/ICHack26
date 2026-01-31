@@ -589,6 +589,268 @@ def get_all_properties_with_coordinates() -> List[Dict[str, Any]]:
         ]
 
 
+# ============================================================================
+# Verification CRUD operations
+# ============================================================================
+
+
+def get_property_for_verification(property_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get property details needed for verification.
+
+    Args:
+        property_id: Property ID
+
+    Returns:
+        Property dict with address and agent_phone, or None if not found
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, latitude, longitude
+            FROM properties
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND removed = 0
+            """
+        )
+        return [
+            {
+                "id": row[0],
+                "latitude": row[1],
+                "longitude": row[2],
+            }
+            for row in cursor.fetchall()
+        ]
+
+
+def get_property_for_verification(property_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get property details needed for verification.
+
+    Args:
+        property_id: Property ID
+
+    Returns:
+        Property dict with address and agent_phone, or None if not found
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, full_address, agent_phone, agent_name
+            FROM properties
+            WHERE id = ? AND agent_phone IS NOT NULL AND agent_phone != ''
+            """,
+            (property_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "address": row[1],
+                "agent_phone": row[2],
+                "agent_name": row[3],
+            }
+        return None
+
+
+def create_verification_log(
+    property_id: int,
+    agent_phone: str,
+    verification_status: str,
+    call_timestamp: Optional[str] = None,
+    call_duration_seconds: Optional[int] = None,
+    agent_response: Optional[str] = None,
+    confidence_score: Optional[float] = None,
+    notes: Optional[str] = None,
+    error_message: Optional[str] = None,
+) -> Optional[int]:
+    """
+    Create a verification log entry.
+
+    Args:
+        property_id: Property ID
+        agent_phone: Phone number called
+        verification_status: Status (available, sold, rented, unclear, failed, etc.)
+        call_timestamp: When the call was made
+        call_duration_seconds: Call duration
+        agent_response: Agent's response summary
+        confidence_score: Confidence in determination (0.0-1.0)
+        notes: Additional notes
+        error_message: Error message if call failed
+
+    Returns:
+        verification_logs table row ID or None
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO verification_logs (
+                property_id, agent_phone, verification_status,
+                call_timestamp, call_duration_seconds, agent_response,
+                confidence_score, notes, error_message
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                property_id,
+                agent_phone,
+                verification_status,
+                call_timestamp,
+                call_duration_seconds,
+                agent_response,
+                confidence_score,
+                notes,
+                error_message,
+            ),
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def update_property_verification_status(
+    property_id: int,
+    verification_status: str,
+    verification_notes: Optional[str] = None,
+) -> bool:
+    """
+    Update property verification status.
+
+    Args:
+        property_id: Property ID
+        verification_status: New status
+        verification_notes: Optional notes
+
+    Returns:
+        True if updated, False if property not found
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE properties
+            SET verification_status = ?, last_verified_at = ?, verification_notes = ?
+            WHERE id = ?
+            """,
+            (
+                verification_status,
+                datetime.utcnow().isoformat(),
+                verification_notes,
+                property_id,
+            ),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def get_verification_status(property_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get property verification status.
+
+    Args:
+        property_id: Property ID
+
+    Returns:
+        Verification status dict or None if not found
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, verification_status, last_verified_at, verification_notes
+            FROM properties
+            WHERE id = ?
+            """,
+            (property_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return {
+                "property_id": row[0],
+                "verification_status": row[1],
+                "last_verified_at": row[2],
+                "verification_notes": row[3],
+            }
+        return None
+
+
+def get_verification_log(property_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get the latest verification log for a property.
+
+    Args:
+        property_id: Property ID
+
+    Returns:
+        Latest verification log or None if not found
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT
+                id, property_id, call_timestamp, call_duration_seconds,
+                agent_phone, agent_response, verification_status,
+                confidence_score, notes, error_message, created_at
+            FROM verification_logs
+            WHERE property_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (property_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "property_id": row[1],
+                "call_timestamp": row[2],
+                "call_duration_seconds": row[3],
+                "agent_phone": row[4],
+                "agent_response": row[5],
+                "verification_status": row[6],
+                "confidence_score": row[7],
+                "notes": row[8],
+                "error_message": row[9],
+                "created_at": row[10],
+            }
+        return None
+
+
+def get_unverified_properties(limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Get properties that haven't been verified yet.
+
+    Args:
+        limit: Maximum number to return
+
+    Returns:
+        List of unverified properties
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, full_address, agent_phone, agent_name
+            FROM properties
+            WHERE (verification_status = 'pending' OR verification_status IS NULL)
+            AND agent_phone IS NOT NULL AND agent_phone != ''
+            ORDER BY last_scraped_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        return [
+            {
+                "id": row[0],
+                "address": row[1],
+                "agent_phone": row[2],
+                "agent_name": row[3],
+            }
+            for row in cursor.fetchall()
+        ]
+
+
 def get_properties_with_isochrone_and_filters(
     isochrone_property_ids: List[int],
     filters: Optional[PropertyFilters] = None,
@@ -687,3 +949,31 @@ def get_properties_with_isochrone_and_filters(
     properties_with_scores.sort(key=lambda p: p.score, reverse=True)
 
     return properties_with_scores[:limit], total_count
+
+
+def get_verification_statistics() -> Dict[str, Any]:
+    """
+    Get verification statistics.
+
+    Returns:
+        Stats dict with counts by status
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT verification_status, COUNT(*) as count
+            FROM properties
+            GROUP BY verification_status
+            ORDER BY count DESC
+            """
+        )
+        stats = {row[0] or "unknown": row[1] for row in cursor.fetchall()}
+
+        cursor.execute("SELECT COUNT(*) FROM verification_logs")
+        total_verifications = cursor.fetchone()[0]
+
+        return {
+            "by_status": stats,
+            "total_verifications": total_verifications,
+        }
