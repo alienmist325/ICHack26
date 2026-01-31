@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Coordinates(BaseModel):
@@ -55,8 +55,8 @@ class RightmoveProperty(BaseModel):
         ..., description="Maximum property size in sq ft (can be empty string)"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "87561351",
                 "url": "https://www.rightmove.co.uk/properties/87561351#/?channel=RES_BUY",
@@ -84,6 +84,7 @@ class RightmoveProperty(BaseModel):
                 "sizeSqFeetMax": "",
             }
         }
+    )
 
 
 class RightmoveResponse(BaseModel):
@@ -91,8 +92,8 @@ class RightmoveResponse(BaseModel):
 
     properties: List[RightmoveProperty] = Field(..., description="List of properties")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "properties": [
                     {
@@ -104,6 +105,7 @@ class RightmoveResponse(BaseModel):
                 ]
             }
         }
+    )
 
 
 class ListUrl(BaseModel):
@@ -168,8 +170,8 @@ class RightmoveScraperInput(BaseModel):
         default_factory=ProxyConfig, description="Proxy configuration"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "listUrls": [
                     {
@@ -195,6 +197,7 @@ class RightmoveScraperInput(BaseModel):
                 "proxy": {"useApifyProxy": True},
             }
         }
+    )
 
     def to_apify_dict(self) -> dict:
         """Convert the model to a dictionary format compatible with Apify API."""

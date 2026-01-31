@@ -2,7 +2,7 @@
 import json
 import math
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from app.database import get_db
@@ -104,7 +104,7 @@ def create_property(property_data: PropertyCreate) -> Property:
     with get_db() as conn:
         cursor = conn.cursor()
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         data = property_data.model_dump()
 
         # Serialize JSON fields
@@ -197,7 +197,7 @@ def update_property(
                 data[field] = _serialize_json_field(data[field])
 
         # Update last_scraped_at
-        data["last_scraped_at"] = datetime.utcnow().isoformat()
+        data["last_scraped_at"] = datetime.now(timezone.utc).isoformat()
 
         set_clause = ", ".join([f"{key} = ?" for key in data.keys()])
         values = list(data.values()) + [property_id]
@@ -330,7 +330,9 @@ def get_ratings_for_property(
         params: List[Any] = [property_id]
 
         if days is not None:
-            cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+            cutoff_date = (
+                datetime.now(timezone.utc) - timedelta(days=days)
+            ).isoformat()
             query += " AND voted_at >= ?"
             params.append(cutoff_date)
 
@@ -363,7 +365,7 @@ def calculate_property_score(
     if not ratings:
         return {"upvotes": 0, "downvotes": 0, "total_votes": 0, "score": 0.0}
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     upvotes = 0
     downvotes = 0
     weighted_score = 0.0
