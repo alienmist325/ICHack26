@@ -15,5 +15,5 @@ uv run -m app.database
 ```
 4. Run the API server:
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
