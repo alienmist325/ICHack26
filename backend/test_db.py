@@ -4,15 +4,16 @@ Simple script to test database functionality.
 Run with: python -m backend.test_db
 """
 
+from app import crud
 from app.database import init_db
 from app.schemas import PropertyCreate, RatingCreate, VoteType
-from app import crud
+
 
 def main():
     print("Initializing database...")
     init_db()
     print("✓ Database initialized\n")
-    
+
     # Create a test property
     print("Creating test property...")
     test_property = PropertyCreate(
@@ -36,19 +37,25 @@ def main():
         agent_name="Test Estate Agents",
         agent_phone="020 1234 5678",
     )
-    
+
     property_obj, created = crud.upsert_property(test_property)
     print(f"✓ Property created with ID: {property_obj.id}")
     print(f"  Rightmove ID: {property_obj.rightmove_id}")
     print(f"  Title: {property_obj.listing_title}\n")
-    
+
     # Add some ratings
     print("Adding ratings...")
-    crud.create_rating(RatingCreate(property_id=property_obj.id, vote_type=VoteType.UPVOTE))
-    crud.create_rating(RatingCreate(property_id=property_obj.id, vote_type=VoteType.UPVOTE))
-    crud.create_rating(RatingCreate(property_id=property_obj.id, vote_type=VoteType.DOWNVOTE))
+    crud.create_rating(
+        RatingCreate(property_id=property_obj.id, vote_type=VoteType.UPVOTE)
+    )
+    crud.create_rating(
+        RatingCreate(property_id=property_obj.id, vote_type=VoteType.UPVOTE)
+    )
+    crud.create_rating(
+        RatingCreate(property_id=property_obj.id, vote_type=VoteType.DOWNVOTE)
+    )
     print("✓ Added 2 upvotes and 1 downvote\n")
-    
+
     # Get property with score
     print("Calculating property score...")
     prop_with_score = crud.get_property_with_score(property_obj.id)
@@ -56,13 +63,14 @@ def main():
     print(f"  Upvotes: {prop_with_score.upvotes}")
     print(f"  Downvotes: {prop_with_score.downvotes}")
     print(f"  Score: {prop_with_score.score:.2f}\n")
-    
+
     # List all properties
     print("Listing all properties...")
     properties = crud.get_properties_with_scores(limit=10)
     print(f"✓ Found {len(properties)} properties\n")
-    
+
     print("Database test completed successfully!")
+
 
 if __name__ == "__main__":
     main()
