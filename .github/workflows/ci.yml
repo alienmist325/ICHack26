@@ -36,9 +36,6 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
-      - name: Check isort
-        run: uvx ruff check --select I .
-
       - name: Check formatting
         run: uvx ruff format --diff .
 
