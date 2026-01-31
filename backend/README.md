@@ -6,7 +6,7 @@
 2. Install dependencies:
 ```bash
 cd backend
-uv add fastapi uvicorn pydantic
+uv sync
 ```
 3. Initialise the database:
 ```bash
