@@ -2,7 +2,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class VoteType(str, Enum):
@@ -140,8 +140,7 @@ class Property(PropertyBase):
     created_at: str
     updated_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PropertyWithScore(Property):
@@ -168,8 +167,7 @@ class Rating(BaseModel):
     vote_type: VoteType
     voted_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PropertyFilters(BaseModel):

@@ -2,7 +2,7 @@
 import json
 import math
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from app.database import get_db
@@ -17,9 +17,48 @@ from app.schemas import (
     VoteType,
 )
 
+# Type hint for RightmoveProperty to avoid circular imports
+RightmoveProperty = Any
+
 # ============================================================================
 # Property CRUD operations
 # ============================================================================
+
+
+def rightmove_property_to_create(
+    rightmove_prop: RightmoveProperty,
+) -> PropertyCreate:
+    """Convert a RightmoveProperty to PropertyCreate for database storage.
+
+    Maps Rightmove API fields to our database schema.
+    """
+    return PropertyCreate(
+        rightmove_id=rightmove_prop.id,
+        listing_title=rightmove_prop.title,
+        listing_url=rightmove_prop.url,
+        full_address=rightmove_prop.displayAddress,
+        latitude=rightmove_prop.coordinates.latitude,
+        longitude=rightmove_prop.coordinates.longitude,
+        property_type=rightmove_prop.propertyType,
+        listing_type=rightmove_prop.type,
+        bedrooms=rightmove_prop.bedrooms,
+        bathrooms=rightmove_prop.bathrooms,
+        size=f"{rightmove_prop.sizeSqFeetMin}-{rightmove_prop.sizeSqFeetMax} sq ft"
+        if (rightmove_prop.sizeSqFeetMin or rightmove_prop.sizeSqFeetMax)
+        else None,
+        price=float(rightmove_prop.price),
+        text_description=rightmove_prop.description,
+        images=rightmove_prop.images,
+        agent_name=rightmove_prop.agent,
+        agent_phone=rightmove_prop.agentPhone,
+        agent_profile_url=rightmove_prop.agentProfileUrl,
+        display_status=rightmove_prop.displayStatus
+        if rightmove_prop.displayStatus
+        else None,
+        listing_update_reason=rightmove_prop.listingUpdateReason,
+        first_visible_date=rightmove_prop.firstVisibleDate.isoformat(),
+        listing_update_date=rightmove_prop.listingUpdateDate.isoformat(),
+    )
 
 
 def _serialize_json_field(value: Any) -> Optional[str]:
@@ -65,7 +104,7 @@ def create_property(property_data: PropertyCreate) -> Property:
     with get_db() as conn:
         cursor = conn.cursor()
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         data = property_data.model_dump()
 
         # Serialize JSON fields
@@ -158,7 +197,7 @@ def update_property(
                 data[field] = _serialize_json_field(data[field])
 
         # Update last_scraped_at
-        data["last_scraped_at"] = datetime.utcnow().isoformat()
+        data["last_scraped_at"] = datetime.now(timezone.utc).isoformat()
 
         set_clause = ", ".join([f"{key} = ?" for key in data.keys()])
         values = list(data.values()) + [property_id]
@@ -184,6 +223,9 @@ def upsert_property(property_data: PropertyCreate) -> tuple[Property, bool]:
     # Convert PropertyCreate to PropertyUpdate
     update_data = PropertyUpdate(**property_data.model_dump())
     updated = update_property(existing.id, update_data)
+    if updated is None:
+        # Should not happen in normal operation, but handle it
+        return existing, False
     return updated, False
 
 
@@ -288,7 +330,9 @@ def get_ratings_for_property(
         params: List[Any] = [property_id]
 
         if days is not None:
-            cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+            cutoff_date = (
+                datetime.now(timezone.utc) - timedelta(days=days)
+            ).isoformat()
             query += " AND voted_at >= ?"
             params.append(cutoff_date)
 
@@ -321,7 +365,7 @@ def calculate_property_score(
     if not ratings:
         return {"upvotes": 0, "downvotes": 0, "total_votes": 0, "score": 0.0}
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     upvotes = 0
     downvotes = 0
     weighted_score = 0.0
