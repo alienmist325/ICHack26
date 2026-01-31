@@ -3,9 +3,9 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
-from datetime import datetime
 
 DATABASE_PATH = Path(__file__).parent.parent / "data" / "rightmove.db"
+
 
 def get_db_connection() -> sqlite3.Connection:
     """Create a database connection with row factory."""
@@ -13,6 +13,7 @@ def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(str(DATABASE_PATH))
     conn.row_factory = sqlite3.Row
     return conn
+
 
 @contextmanager
 def get_db() -> Generator[sqlite3.Connection, None, None]:
@@ -27,11 +28,12 @@ def get_db() -> Generator[sqlite3.Connection, None, None]:
     finally:
         conn.close()
 
+
 def init_db() -> None:
     """Initialize the database with all tables."""
     with get_db() as conn:
         cursor = conn.cursor()
-        
+
         # Properties table - stores all Rightmove listing data
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS properties (
@@ -107,7 +109,7 @@ def init_db() -> None:
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         # Ratings table - tracks upvotes/downvotes for listings
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ratings (
@@ -119,53 +121,53 @@ def init_db() -> None:
                 FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
             )
         """)
-        
+
         # Create indexes for common queries
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_rightmove_id 
             ON properties(rightmove_id)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_location 
             ON properties(latitude, longitude)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_price 
             ON properties(price)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_bedrooms 
             ON properties(bedrooms)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_property_type 
             ON properties(property_type)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_removed 
             ON properties(removed)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_outcode 
             ON properties(outcode)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_ratings_property_id 
             ON ratings(property_id)
         """)
-        
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_ratings_voted_at 
             ON ratings(voted_at)
         """)
-        
+
         # Create trigger to update updated_at timestamp
         cursor.execute("""
             CREATE TRIGGER IF NOT EXISTS update_properties_timestamp 
@@ -176,8 +178,9 @@ def init_db() -> None:
                 WHERE id = NEW.id;
             END
         """)
-        
+
         conn.commit()
+
 
 if __name__ == "__main__":
     print("Initializing database...")
