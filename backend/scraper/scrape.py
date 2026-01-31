@@ -1,7 +1,6 @@
 """Rightmove scraper module using Apify API."""
 
 import logging
-from typing import Optional
 
 from apify_client import ApifyClientAsync
 
@@ -88,8 +87,8 @@ async def scrape_rightmove(
         elif isinstance(list_items_result, dict) and "items" in list_items_result:
             items = list_items_result["items"]
         else:
-            # Fallback: try to iterate  # type: ignore
-            items = [item for item in list_items_result]  # type: ignore
+            # Fallback: try to iterate
+            items = [item for item in list_items_result]
 
         logger.info(f"Retrieved {len(items)} items from dataset")
 
