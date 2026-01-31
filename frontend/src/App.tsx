@@ -2,7 +2,8 @@ import "./App.css";
 import styled from "styled-components";
 import { HeaderContainer } from "./components/layout/HeaderContainer";
 import { FooterContainer } from "./components/layout/FooterContainer";
-import { ExampleScreen } from "./components/screens/ExampleScreen";
+import { HouseSearch } from "./components/screens/HouseSearch";
+// import { ExampleScreen } from "./components/screens/ExampleScreen";
 import {
   FilterContext,
   useSetupFilter,
@@ -31,7 +32,7 @@ function App() {
       <FilterContext.Provider value={filter}>
         <AppContainer>
           <HeaderContainer>Not Rightmove</HeaderContainer>
-          <ExampleScreen></ExampleScreen>
+          <HouseSearch></HouseSearch>
           <FooterContainer> Made for IC Hack 2026 </FooterContainer>
         </AppContainer>
       </FilterContext.Provider>
