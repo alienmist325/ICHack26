@@ -8,7 +8,8 @@ interface SizeProps {
 export function Button(
   props: ButtonHTMLAttributes<HTMLButtonElement> & SizeProps
 ) {
-  return <ButtonBox size={props.size ?? 1}> {props.children} </ButtonBox>;
+  const { size, ...rest } = props;
+  return <ButtonBox size={size ?? 1} {...rest}> {props.children} </ButtonBox>;
 }
 
 const ButtonBox = styled.button<SizeProps>`
