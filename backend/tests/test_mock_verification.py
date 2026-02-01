@@ -106,14 +106,15 @@ def test_mock_phone_number_configured():
 
 
 def test_transcript_analysis_simple_yes():
-    """Test analysis correctly identifies 'yes' responses."""
+    """Test analysis correctly identifies 'yes' responses in Bland AI format."""
     from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
 
+    # Bland AI format: "A: question\n user: answer"
     transcripts = [
-        'AGENT: "Is it available?" HUMAN: "Yes."',
-        'AGENT: "Status?" HUMAN: "Yes"',
-        'AGENT: "Is this property still available?" HUMAN: "Yes, it is."',
+        "A: Is it available?\n user: Yes.",
+        "A: Status?\n user: Yes",
+        "A: Is this property still available?\n user: Yes, it is.",
     ]
 
     for transcript in transcripts:
@@ -122,15 +123,16 @@ def test_transcript_analysis_simple_yes():
 
 
 def test_transcript_analysis_simple_no():
-    """Test analysis correctly identifies 'no' responses."""
+    """Test analysis correctly identifies 'no' responses in Bland AI format."""
     from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
 
+    # Bland AI format: "user: No." at start of response line
     transcripts = [
-        'AGENT: "Is it available?" HUMAN: "No."',
-        'AGENT: "Status?" HUMAN: "No"',
-        'AGENT: "Still on market?" HUMAN: "Nope."',
-        'AGENT: "Available?" HUMAN: "No, sorry."',
+        "A: Is it available?\n user: No.",
+        "A: Status?\n user: No",
+        "A: Still on market?\n user: Nope.",
+        "A: Available?\n user: No, sorry.",
     ]
 
     for transcript in transcripts:
@@ -216,23 +218,31 @@ def test_transcript_analysis_negation_patterns():
 
 
 def test_transcript_analysis_edge_cases():
-    """Test analysis with edge cases and complex transcripts."""
+    """Test analysis with edge cases and real API transcripts."""
     from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
 
-    # Real transcript from user's example
-    real_transcript = (
-        "AGENT: \"Hi, I'm calling to check if One Hyde Park, Knightsbridge, London, "
-        "SW1X is still available for sale. Can you confirm if this property is still on "
-        'the market? Please just say yes or no." HUMAN: "No." AGENT: "Thank you for your '
-        'time. Goodbye."'
-    )
+    # Real transcript from Bland AI API (concatenated_transcript format)
+    real_transcript = """A: Hi, I'm calling to check if One Hyde Park, Knightsbridge, London, SW1X is still available for sale. Can you confirm if this property is still on the market? Please just say yes or no. 
+ user: No. 
+ assistant: Thank you for your time. Goodbye. 
+ agent-action: Ended call"""
+
     status = _analyze_transcript(real_transcript, "sale")
     assert status == VerificationStatus.UNAVAILABLE, (
-        "Real example should classify as UNAVAILABLE"
+        "Real API example should classify as UNAVAILABLE"
     )
 
     # Empty or whitespace
     assert _analyze_transcript("", "sale") == VerificationStatus.UNSURE
     assert _analyze_transcript("   ", "sale") == VerificationStatus.UNSURE
     assert _analyze_transcript(None, "sale") == VerificationStatus.UNSURE
+
+    # Another real format with Yes response
+    yes_transcript = """A: Is this property still available?
+ user: Yes.
+ assistant: Thank you."""
+    status = _analyze_transcript(yes_transcript, "sale")
+    assert status == VerificationStatus.AVAILABLE, (
+        "Real API with Yes should classify as AVAILABLE"
+    )
