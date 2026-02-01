@@ -153,7 +153,7 @@ class ApiClient {
      const authHeader: HeadersInit = {};
      if (tokens) {
        const parsed = JSON.parse(tokens);
-       authHeader['Authorization'] = `Bearer ${parsed.access_token}`;
+       authHeader['Authorization'] = `Bearer ${parsed.accessToken}`;
      }
      return authHeader;
    }
