@@ -6,9 +6,9 @@ from apify_client import ApifyClientAsync
 
 from backend.config import settings
 from backend.models.rightmove import (
-    RightmoveScraperInput,
-    RightmoveResponse,
     RightmoveProperty,
+    RightmoveResponse,
+    RightmoveScraperInput,
 )
 
 # Configure logging

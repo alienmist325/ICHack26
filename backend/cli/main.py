@@ -11,20 +11,29 @@ Usage:
     rightmove-scraper --list-url "url1" --list-url "url2" --property-url "url3"
 """
 
+import asyncio
 import logging
 import sys
-from typing import List, Optional, Tuple
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+
+# Add backend directory to path to allow relative imports to work
+# This is needed for imports like "from app.database" to work when CLI is run standalone
+backend_dir = Path(__file__).parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
 
 import click
 
-from backend.cli.scraper import run_scraper
+from backend.app import crud
 from backend.config import settings
 from backend.models.rightmove import (
     ListUrl,
-    ProxyConfig,
     PropertyUrl,
+    ProxyConfig,
     RightmoveScraperInput,
 )
+from backend.services import scrape_rightmove
 
 # Configure logging for CLI output
 logging.basicConfig(
@@ -33,6 +42,99 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
+
+
+async def scrape_and_store(config: RightmoveScraperInput) -> Dict[str, int]:
+    """
+    Scrape Rightmove properties and store them in the database.
+
+    This async function:
+    1. Calls the async scraper to fetch properties from Apify
+    2. Converts each property to the database schema
+    3. Upserts properties into the database (create or update)
+    4. Tracks statistics and returns summary
+
+    Args:
+        config: RightmoveScraperInput configuration with scraping parameters
+
+    Returns:
+        Dictionary with summary statistics:
+        {
+            "total": int,      # Total properties scraped
+            "created": int,    # Number of new properties created
+            "updated": int,    # Number of existing properties updated
+            "failed": int,     # Number of properties that failed to store
+        }
+
+    Raises:
+        ValueError: If configuration is invalid or API key is missing
+        Exception: If scraping or database operations fail
+    """
+    logger.info(
+        f"Starting Rightmove scraper with config: {config.model_dump(exclude_unset=True)}"
+    )
+
+    try:
+        # Run async scraper
+        response = await scrape_rightmove(config)
+
+        if not response.properties:
+            logger.warning("Scrape completed but no properties returned")
+            return {"total": 0, "created": 0, "updated": 0, "failed": 0}
+
+        logger.info(f"Scraped {len(response.properties)} properties from Rightmove")
+
+        # Convert and store each property
+        stats = {
+            "total": len(response.properties),
+            "created": 0,
+            "updated": 0,
+            "failed": 0,
+        }
+
+        for rightmove_prop in response.properties:
+            try:
+                # Convert RightmoveProperty to PropertyCreate
+                property_data = crud.rightmove_property_to_create(rightmove_prop)
+
+                # Upsert into database (create or update based on rightmove_id)
+                property_obj, created = crud.upsert_property(property_data)
+
+                if created:
+                    stats["created"] += 1
+                    logger.debug(
+                        f"Created property {rightmove_prop.id}: {rightmove_prop.title}"
+                    )
+                else:
+                    stats["updated"] += 1
+                    logger.debug(
+                        f"Updated property {rightmove_prop.id}: {rightmove_prop.title}"
+                    )
+
+            except Exception as e:
+                stats["failed"] += 1
+                logger.error(
+                    f"Failed to store property {rightmove_prop.id}: {str(e)}",
+                    exc_info=True,
+                )
+                # Continue with next property instead of failing entire operation
+                continue
+
+        logger.info(
+            f"Successfully processed {stats['created'] + stats['updated']} properties "
+            f"({stats['created']} created, {stats['updated']} updated, {stats['failed']} failed)"
+        )
+
+        return stats
+
+    except ValueError as e:
+        # Configuration/validation error
+        logger.error(f"Configuration error: {str(e)}")
+        raise
+    except Exception as e:
+        # Unexpected error
+        logger.error(f"Scraping failed: {str(e)}", exc_info=True)
+        raise
 
 
 @click.command()
@@ -194,8 +296,8 @@ def main(
         logger.info("Rightmove Scraper CLI - Starting scrape job")
         logger.info("=" * 70)
 
-        # Run the scraper
-        stats = run_scraper(config)
+        # Run the scraper and store properties
+        stats = asyncio.run(scrape_and_store(config))
 
         # Print summary
         logger.info("=" * 70)
