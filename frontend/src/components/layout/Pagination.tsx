@@ -12,7 +12,7 @@ const PaginationContainer = styled.div`
 
 const ResultsInfo = styled.p`
   font-size: 0.9rem;
-  color: #666;
+  color: ${colors.lightText};
   margin: 0;
 `;
 
@@ -30,18 +30,19 @@ const NavButton = styled.button<{ disabled?: boolean }>`
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border: 2px solid ${colors.rightMoveBlue};
+  border: 2px solid ${colors.teal};
   background-color: white;
-  color: ${colors.rightMoveBlue};
+  color: ${colors.teal};
   border-radius: 50%;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    background-color: ${colors.rightMoveBlue};
+    background-color: ${colors.teal};
     color: white;
-    transform: scale(1.05);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px ${colors.teal}30;
   }
 
   &:active:not(:disabled) {
@@ -67,18 +68,18 @@ const PageDot = styled.button<{ isActive: boolean }>`
   height: 0.75rem;
   border-radius: 50%;
   border: none;
-  background-color: ${(props) => (props.isActive ? colors.rightMoveBlue : "#ccc")};
+  background-color: ${(props) => (props.isActive ? colors.teal : colors.borderColor)};
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${(props) => (props.isActive ? colors.rightMoveBlue : "#999")};
-    transform: scale(1.2);
+    background-color: ${(props) => (props.isActive ? colors.teal : colors.lightText)};
+    transform: scale(1.3);
   }
 `;
 
 const EllipsisContainer = styled.span`
-  color: #999;
+  color: ${colors.lightText};
   font-weight: bold;
 `;
 
