@@ -41,6 +41,12 @@ class BlandCallResult(BaseModel):
     success: bool
     data: Optional[Dict[str, Any]] = None
 
+    class Config:
+        """Pydantic config for flexible validation."""
+
+        # Allow extra fields from Bland AI API response
+        extra = "allow"
+
 
 class VerificationRequest(BaseModel):
     """Request to verify a property."""

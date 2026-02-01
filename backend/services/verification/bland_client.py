@@ -94,7 +94,10 @@ class BlandAIClient:
             response.raise_for_status()
             data = response.json()
 
+            logger.debug(f"Bland AI API response: {data}")
+
             # Map API response to BlandCallResult
+            # Bland AI returns: call_id, status, duration, transcript, success, data, etc.
             result = BlandCallResult(
                 call_id=call_id,
                 status=data.get("status", "unknown"),
@@ -103,9 +106,15 @@ class BlandAIClient:
                 success=data.get("success", False),
                 data=data.get("data"),
             )
+            logger.debug(
+                f"Parsed BlandCallResult: call_id={result.call_id}, status={result.status}, duration={result.duration}"
+            )
             return result
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get Bland AI call result: {e}")
+            return None
+        except ValueError as e:
+            logger.error(f"Failed to parse Bland AI response: {e}")
             return None
 
     def wait_for_call_completion(
