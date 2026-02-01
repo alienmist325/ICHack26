@@ -620,6 +620,7 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
             return dict(zip([desc[0] for desc in cursor.description], row))
         return None
 
+
 # Add a delete user function if needed
 def delete_user(user_id: int) -> bool:
     """Delete a user by ID.

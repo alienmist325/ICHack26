@@ -17,18 +17,18 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from backend.models.rightmove import (
-    RightmoveProperty,
-    Coordinates,
-)
 from backend.app.crud import (
-    rightmove_property_to_create,
-    upsert_property,
     get_properties,
     get_property_with_score,
+    rightmove_property_to_create,
+    upsert_property,
 )
-from backend.app.schemas import PropertyFilters
 from backend.app.database import init_db
+from backend.app.schemas import PropertyFilters
+from backend.models.rightmove import (
+    Coordinates,
+    RightmoveProperty,
+)
 
 
 def create_mock_properties():

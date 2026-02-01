@@ -2,15 +2,16 @@
 Personalized feed based on user preferences and starred properties.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List
-import sqlite3
 import json
+import sqlite3
+from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from app import crud
 from app.database import get_db
 from app.routers.auth import get_current_user
 from app.schemas import User
-from app import crud
 
 router = APIRouter(prefix="/feed", tags=["personalization"])
 

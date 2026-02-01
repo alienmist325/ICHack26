@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import crud
 from app.database import init_db
+from app.routers import auth, personalization, properties, shared_feeds, users, viewings
 from app.schemas import (
     DistanceRequest,
     DistanceResponse,
@@ -28,6 +29,8 @@ from app.schemas import (
     TravelTimeResult,
 )
 from app.routers import auth, users, properties, viewings, shared_feeds, personalization
+from backend.models.rightmove import RightmoveScraperInput
+from backend.scraper.scrape import scrape_rightmove
 from backend.services.geocoding_service import GeocodingService
 from backend.services.routing_service import (
     RoutingService,

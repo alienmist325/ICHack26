@@ -2,22 +2,23 @@
 Authentication routes for user registration, login, and OAuth.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Header
-from typing import Optional
 import sqlite3
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.database import get_db
 from app.schemas import (
-    UserRegister,
-    UserLogin,
-    User,
     TokenResponse,
+    User,
+    UserLogin,
+    UserRegister,
 )
 from app.security import (
+    create_token_pair,
     hash_password,
     verify_password,
     verify_token,
-    create_token_pair,
 )
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
