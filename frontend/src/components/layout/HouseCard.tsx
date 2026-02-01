@@ -113,15 +113,18 @@ const CarouselControls = styled.div<{ visible: boolean }>`
 `;
 
 const ArrowButton = styled.button`
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
+
+  background: rgba(255, 255, 255, 0.8);
+  width: 40px;
+  height: 30px;
+  justify-content: center;
   transition: background 0.2s ease;
 
   &:hover {
@@ -129,9 +132,19 @@ const ArrowButton = styled.button`
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.1;
     cursor: not-allowed;
   }
+`;
+
+const LargeChevronRight = styled(FiChevronRight)`
+  transform: scale(2);
+  transform-origin: center;
+`;
+
+const LargeChevronLeft = styled(FiChevronLeft)`
+  transform: scale(2);
+  transform-origin: center;
 `;
 
 const ImageCounter = styled.div`
@@ -464,10 +477,10 @@ export function HouseCard(props: HouseCardProps) {
             />
             <CarouselControls visible={isHovering}>
               <ArrowButton onClick={handlePreviousImage}>
-                <FiChevronLeft size={20} />
+                <LargeChevronLeft />
               </ArrowButton>
               <ArrowButton onClick={handleNextImage}>
-                <FiChevronRight size={20} />
+                <LargeChevronRight />
               </ArrowButton>
             </CarouselControls>
             {isHovering && (
