@@ -632,7 +632,7 @@ def get_properties_by_ids(property_ids: List[int]) -> List[Property]:
     if not property_ids:
         return []
 
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         placeholders = ",".join(["?" for _ in property_ids])
         cursor.execute(
@@ -650,7 +650,7 @@ def get_all_properties_with_coordinates() -> List[Dict[str, Any]]:
     Returns:
         List of dicts with 'id', 'latitude', 'longitude' keys
     """
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
@@ -696,7 +696,7 @@ def get_properties_with_isochrone_and_filters(
     if not isochrone_property_ids:
         return [], 0
 
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         # Build base query: must be in isochrone results

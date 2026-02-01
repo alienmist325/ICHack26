@@ -31,7 +31,7 @@ async def create_viewing(
 
     # Validate date format
     try:
-        viewing_datetime = datetime.fromisoformat(viewing.viewing_date)
+        datetime.fromisoformat(viewing.viewing_date)
     except ValueError:
         raise HTTPException(
             status_code=400, detail="Invalid date format. Use ISO format: YYYY-MM-DD"

@@ -286,7 +286,6 @@ class TestSharedFeedsEndpoints:
             "/shared-feeds",
             json={"name": "Test Feed"},
         )
-        feed_id = feed_response.json()["id"]
         invite_code = feed_response.json()["invite_code"]
 
         # Join as second user
