@@ -66,30 +66,7 @@ const FilterTitle = styled.h3`
   font-weight: 700;
   color: ${colors.darkText};
   margin: 0 0 1.5rem 0;
-  position: relative;
-  display: inline-block;
-  padding-bottom: 8px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, ${colors.teal} 0%, ${colors.purple} 100%);
-    border-radius: 1px;
-    animation: slideInWidth 0.6s ease-out;
-  }
-
-  @keyframes slideInWidth {
-    from {
-      width: 0;
-    }
-    to {
-      width: 100%;
-    }
-  }
+  padding-bottom: 0;
 `;
 
 const FilterLabel = styled.label`

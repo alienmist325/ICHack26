@@ -56,16 +56,6 @@ const Title = styled.h1`
     height: 3px;
     background: linear-gradient(90deg, ${colors.teal} 0%, ${colors.purple} 100%);
     border-radius: 2px;
-    animation: slideIn 0.6s ease-out;
-  }
-
-  @keyframes slideIn {
-    from {
-      width: 0;
-    }
-    to {
-      width: 100%;
-    }
   }
 `;
 
