@@ -18,7 +18,7 @@ def _analyze_transcript(
 ) -> VerificationStatus:
     """Analyze call transcript to determine property availability.
 
-    Uses simple keyword heuristics to determine if property is:
+    Uses keyword heuristics and context analysis to determine if property is:
     - AVAILABLE: Agent confirmed property is still available
     - UNAVAILABLE: Agent confirmed property is sold/rented/off market
     - UNSURE: Ambiguous or unclear response
@@ -50,6 +50,11 @@ def _analyze_transcript(
         "viewing available",
         "listed",
         "listing is active",
+        "still have",
+        "still selling",
+        "haven't sold",
+        "actively marketing",
+        "great opportunity",
     ]
 
     # Keywords indicating property is UNAVAILABLE
@@ -67,6 +72,23 @@ def _analyze_transcript(
         "already rented",
         "no longer for rent",
         "no longer for sale",
+        "no longer selling",
+        "been let",
+        "been rented",
+    ]
+
+    # Keywords indicating UNSURE/AMBIGUOUS response
+    unsure_keywords = [
+        "not sure",
+        "i think so",
+        "maybe",
+        "i believe so",
+        "might be",
+        "need to check",
+        "let me check",
+        "not entirely sure",
+        "i'm not certain",
+        "can't find",
     ]
 
     # Check for unavailable keywords first (higher priority)
@@ -80,6 +102,25 @@ def _analyze_transcript(
         if keyword in lower_transcript:
             logger.info(f"Found available keyword: '{keyword}'")
             return VerificationStatus.AVAILABLE
+
+    # Check for unsure keywords
+    for keyword in unsure_keywords:
+        if keyword in lower_transcript:
+            logger.info(f"Found unsure keyword: '{keyword}'")
+            return VerificationStatus.UNSURE
+
+    # Handle standalone "no" or "nope" responses (likely unavailable)
+    import re
+
+    # Look for "no" at start of human response or as standalone word
+    if re.search(r'\bhuman[:\s]+["\']?(?:no|nope)["\']?', lower_transcript):
+        logger.info("Detected 'no' response from human - property likely unavailable")
+        return VerificationStatus.UNAVAILABLE
+
+    # Handle standalone "yes" responses
+    if re.search(r'\bhuman[:\s]+["\']?yes["\']?', lower_transcript):
+        logger.info("Detected 'yes' response from human - property likely available")
+        return VerificationStatus.AVAILABLE
 
     # If no keywords matched, status is UNSURE
     logger.info("No clear keywords matched in transcript")
