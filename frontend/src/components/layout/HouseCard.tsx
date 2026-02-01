@@ -25,7 +25,7 @@ const CardContainer = styled.div`
   gap: 2rem;
   padding: 1.5rem;
   border-bottom: 1px solid ${colors.borderColor};
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   background-color: ${colors.white};
   position: relative;
   border-left: 4px solid transparent;
@@ -34,7 +34,9 @@ const CardContainer = styled.div`
     background-color: ${colors.lightBg};
     transform: translateX(4px);
     border-left-color: ${colors.teal};
-    box-shadow: inset 0 0 0 1px ${colors.borderColor};
+    box-shadow: 
+      inset 0 0 0 1px ${colors.borderColor},
+      0 4px 16px ${colors.teal}10;
   }
 `;
 

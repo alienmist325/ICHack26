@@ -17,6 +17,29 @@ const AppContent = styled.div`
   overflow: auto;
   background: ${colors.lightBg};
   position: relative;
+  scroll-behavior: smooth;
+  
+  /* Smooth scroll for webkit browsers */
+  scrollbar-width: thin;
+  scrollbar-color: ${colors.teal}40 transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${colors.teal}40;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: ${colors.teal}60;
+    }
+  }
 `;
 
 const BackgroundPatternWrapper = styled.div`
@@ -34,6 +57,16 @@ const ContentWrapper = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
+  animation: fadeIn 0.4s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 `;
 
 const SidebarButton = styled.button`
