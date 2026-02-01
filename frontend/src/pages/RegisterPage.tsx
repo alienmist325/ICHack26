@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiCheck, FiX } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
@@ -370,6 +370,7 @@ function calculatePasswordStrength(password: string): PasswordStrength {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register, isLoading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -429,7 +430,9 @@ export function RegisterPage() {
     try {
       await register(email, password);
       setSuccess(true);
-      setTimeout(() => navigate('/'), 1500);
+      // Redirect to the page the user was trying to visit, or to home
+      const from = (location.state as any)?.from?.pathname || '/';
+      setTimeout(() => navigate(from), 1500);
     } catch (err) {
       setLocalError(
         err instanceof Error

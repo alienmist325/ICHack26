@@ -43,7 +43,8 @@ export function useSetupAuth(): AuthContextType {
         const parsed = JSON.parse(storedTokens);
         setTokens(parsed);
         
-        // Try to fetch user info
+        // Try to fetch user info using the access token
+        // Tokens are stored in camelCase (accessToken)
         fetchCurrentUser(parsed.accessToken);
       } catch (err) {
         console.error('Failed to parse stored tokens:', err);
@@ -92,11 +93,18 @@ export function useSetupAuth(): AuthContextType {
       }
 
       const tokenData = await response.json();
-      setTokens(tokenData);
-      localStorage.setItem('auth_tokens', JSON.stringify(tokenData));
+      // Convert API response (snake_case) to camelCase for consistent internal use
+      const normalizedTokens = {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenType: tokenData.token_type,
+        expiresIn: tokenData.expires_in,
+      };
+      setTokens(normalizedTokens);
+      localStorage.setItem('auth_tokens', JSON.stringify(normalizedTokens));
 
       // Fetch user info
-      await fetchCurrentUser(tokenData.access_token);
+      await fetchCurrentUser(normalizedTokens.accessToken);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Registration failed';
       setError(errorMsg);
@@ -121,11 +129,18 @@ export function useSetupAuth(): AuthContextType {
       }
 
       const tokenData = await response.json();
-      setTokens(tokenData);
-      localStorage.setItem('auth_tokens', JSON.stringify(tokenData));
+      // Convert API response (snake_case) to camelCase for consistent internal use
+      const normalizedTokens = {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenType: tokenData.token_type,
+        expiresIn: tokenData.expires_in,
+      };
+      setTokens(normalizedTokens);
+      localStorage.setItem('auth_tokens', JSON.stringify(normalizedTokens));
 
       // Fetch user info
-      await fetchCurrentUser(tokenData.access_token);
+      await fetchCurrentUser(normalizedTokens.accessToken);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Login failed';
       setError(errorMsg);
@@ -161,9 +176,16 @@ export function useSetupAuth(): AuthContextType {
         return;
       }
 
-      const newTokens = await response.json();
-      setTokens(newTokens);
-      localStorage.setItem('auth_tokens', JSON.stringify(newTokens));
+      const tokenData = await response.json();
+      // Convert API response (snake_case) to camelCase for consistent internal use
+      const normalizedTokens = {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenType: tokenData.token_type,
+        expiresIn: tokenData.expires_in,
+      };
+      setTokens(normalizedTokens);
+      localStorage.setItem('auth_tokens', JSON.stringify(normalizedTokens));
     } catch (err) {
       console.error('Token refresh failed:', err);
       logout();

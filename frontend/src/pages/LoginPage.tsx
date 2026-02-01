@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
@@ -299,6 +299,7 @@ const ErrorMessage = styled.div`
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isLoading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -316,7 +317,9 @@ export function LoginPage() {
 
     try {
       await login(email, password);
-      navigate('/');
+      // Redirect to the page the user was trying to visit, or to home
+      const from = (location.state as any)?.from?.pathname || '/';
+      navigate(from);
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : 'Login failed');
     }
