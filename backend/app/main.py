@@ -44,9 +44,9 @@ from backend.services.routing_service import (
 
 # Configure logging to ensure startup messages are visible
 # This ensures logs appear regardless of how the app is started (fastapi dev or uvicorn)
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# logging.basicConfig(
+#     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# )
 
 logger = logging.getLogger(__name__)
 
