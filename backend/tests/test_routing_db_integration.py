@@ -71,6 +71,13 @@ def db_with_properties(test_db_path):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
+    # Clear any existing properties to ensure consistent IDs
+    # This is necessary because other tests (like test_properties.py)
+    # may have created properties with auto-incremented IDs
+    cursor.execute("DELETE FROM properties")
+    cursor.execute("DELETE FROM sqlite_sequence WHERE name='properties'")
+    conn.commit()
+
     properties = [
         {
             "rightmove_id": "LONDON_001",

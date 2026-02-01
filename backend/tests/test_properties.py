@@ -33,8 +33,9 @@ class TestPropertyEndpoints:
 
         response = authenticated_client.post(f"/properties/{prop.id}/star")
 
-        assert response.status_code == 200
-        assert "starred" in response.json()
+        assert response.status_code == 201
+        assert "status" in response.json()
+        assert response.json()["status"] == "starred"
 
     def test_unstar_property_endpoint(self, authenticated_client, mock_property_data):
         """Test unstarring property via API endpoint."""
@@ -43,10 +44,10 @@ class TestPropertyEndpoints:
         # Star first
         authenticated_client.post(f"/properties/{prop.id}/star")
 
-        # Then unstar
-        response = authenticated_client.post(f"/properties/{prop.id}/unstar")
+        # Then unstar using DELETE method
+        response = authenticated_client.delete(f"/properties/{prop.id}/star")
 
-        assert response.status_code == 200
+        assert response.status_code == 204
 
     def test_set_status_endpoint(self, authenticated_client, mock_property_data):
         """Test setting property status via API endpoint."""
@@ -57,7 +58,7 @@ class TestPropertyEndpoints:
             json={"status": "interested"},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     def test_add_comment_endpoint(self, authenticated_client, mock_property_data):
         """Test adding comment via API endpoint."""
@@ -101,7 +102,7 @@ class TestPropertyEndpoints:
             f"/properties/{prop.id}/comments/{comment_id}"
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 204
 
     def test_star_nonexistent_property(self, authenticated_client):
         """Test starring non-existent property returns 404."""
