@@ -2,7 +2,7 @@
 
 from enum import Enum
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -37,7 +37,8 @@ class VerificationJob(BaseModel):
         default=JobStatus.QUEUED, description="Current job status"
     )
     created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Job creation time"
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Job creation time",
     )
     started_at: Optional[datetime] = Field(default=None, description="Job start time")
     completed_at: Optional[datetime] = Field(
@@ -84,7 +85,7 @@ class VerificationResult(BaseModel):
         default=None, description="Error details if failed"
     )
     created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Creation time"
+        default_factory=lambda: datetime.now(timezone.utc), description="Creation time"
     )
 
 

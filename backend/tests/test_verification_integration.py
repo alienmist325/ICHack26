@@ -15,14 +15,6 @@ def client():
     return TestClient(app)
 
 
-@pytest.fixture(autouse=True)
-def setup_db():
-    """Initialize database for each test."""
-    init_db()
-    yield
-    # Cleanup happens automatically with in-memory SQLite
-
-
 class TestVerificationEndpoints:
     """Tests for verification API endpoints."""
 

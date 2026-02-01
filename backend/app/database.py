@@ -1,14 +1,32 @@
 # backend/app/database.py
+import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Optional
 
 DATABASE_PATH = Path(__file__).parent.parent / "data" / "rightmove.db"
+
+# Global shared in-memory database connection for tests
+_test_db_connection: Optional[sqlite3.Connection] = None
+
+
+def _is_test_mode() -> bool:
+    """Check if we're running in test mode."""
+    return os.environ.get("TEST_MODE", "false").lower() == "true"
 
 
 def get_db_connection() -> sqlite3.Connection:
     """Create a database connection with row factory."""
+    if _is_test_mode():
+        # Use in-memory database for testing with thread safety
+        global _test_db_connection
+        if _test_db_connection is None:
+            _test_db_connection = sqlite3.connect(":memory:", check_same_thread=False)
+            _test_db_connection.row_factory = sqlite3.Row
+        return _test_db_connection
+
+    # Use persistent file database for production
     DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DATABASE_PATH))
     conn.row_factory = sqlite3.Row
@@ -18,15 +36,27 @@ def get_db_connection() -> sqlite3.Connection:
 @contextmanager
 def get_db() -> Generator[sqlite3.Connection, None, None]:
     """Context manager for database connections."""
-    conn = get_db_connection()
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    if _is_test_mode():
+        # In test mode, reuse the in-memory connection without closing
+        conn = get_db_connection()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        # Don't close in-memory connection during tests, just commit
+    else:
+        # In production, create a new connection for each use
+        conn = get_db_connection()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
 
 def init_db() -> None:
@@ -219,6 +249,17 @@ def init_db() -> None:
         """)
 
         conn.commit()
+
+
+def reset_test_db() -> None:
+    """Reset the in-memory test database. Only works in test mode."""
+    global _test_db_connection
+    if _test_db_connection is not None:
+        try:
+            _test_db_connection.close()
+        except Exception:
+            pass
+        _test_db_connection = None
 
 
 if __name__ == "__main__":

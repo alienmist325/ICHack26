@@ -17,6 +17,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
+    "pytest-asyncio>=0.24.0",
     "ruff>=0.14.14",
 ]
 
@@ -29,3 +30,11 @@ packages = ["backend"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["backend/app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
