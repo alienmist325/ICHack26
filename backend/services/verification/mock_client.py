@@ -238,6 +238,8 @@ class MockBlandAIClient:
             "Yes, that one is still available for rent. Would you like to schedule a viewing?",
             "Yes, that's still on our rental list. It's a great property.",
             "Yes, absolutely. That property is still available. We can show it to interested tenants.",
+            "We still have it listed. It's currently available for rent.",
+            "Yes, it hasn't been let yet. Still actively marketing it.",
         ]
 
         # Available transcripts (for sale listings)
@@ -247,9 +249,11 @@ class MockBlandAIClient:
             "Yes, that's still listed for sale. Would you like more information?",
             "Yes, absolutely. That property is still available for purchase.",
             "Yes, we're still selling that property. It hasn't been sold yet.",
+            "We still have it on the market. Currently available for sale.",
+            "Yes, the property is still for sale. We continue to market it actively.",
         ]
 
-        # Unavailable transcripts
+        # Unavailable transcripts - property already sold/let
         unavailable = [
             "Sorry, that property has already been rented out. It's no longer available.",
             "No, that property has been sold. It's off the market now.",
@@ -258,9 +262,12 @@ class MockBlandAIClient:
             "No, that's been sold. We took it off the listing.",
             "Unfortunately, that property has already found a tenant.",
             "Sorry, that one's no longer available. It sold a few days ago.",
+            "No, it's been let. Not available anymore.",
+            "That one has already sold.",
+            "It was rented out last month.",
         ]
 
-        # Unsure transcripts
+        # Unsure/ambiguous transcripts - agent not certain
         unsure = [
             "I'm not entirely sure about that one. You'd have to check our online listings.",
             "Hmm, I think so, but I'd need to verify that in our system.",
@@ -268,23 +275,24 @@ class MockBlandAIClient:
             "I'm not sure off the top of my head. Let me check... sorry, I can't find that one quickly.",
             "I believe so, but I'd recommend checking our website for the most current information.",
             "That one might be available, but I'm not completely certain.",
+            "I'm not sure... it might still be listed. Would need to check our database.",
         ]
 
         # Randomly choose availability status based on weighted probabilities
         rand = random.random()
 
-        if rand < 0.5:
-            # 50% chance: AVAILABLE
+        if rand < 0.45:
+            # 45% chance: AVAILABLE
             # For demonstration, randomly choose between rent and sale transcripts
             pool = random.choice([available_rent, available_sale])
             transcript = random.choice(pool)
             logger.debug("[MOCK] Generated AVAILABLE transcript")
-        elif rand < 0.8:
+        elif rand < 0.75:
             # 30% chance: UNAVAILABLE
             transcript = random.choice(unavailable)
             logger.debug("[MOCK] Generated UNAVAILABLE transcript")
         else:
-            # 20% chance: UNSURE
+            # 25% chance: UNSURE
             transcript = random.choice(unsure)
             logger.debug("[MOCK] Generated UNSURE transcript")
 
