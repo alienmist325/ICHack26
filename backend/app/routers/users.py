@@ -9,6 +9,7 @@ import sqlite3
 from app.database import get_db
 from app.schemas import (
     User,
+    UserUpdate,
     UserResponse,
     NotificationSettings,
 )
@@ -56,7 +57,7 @@ async def get_user(
 
 @router.put("/", response_model=UserResponse)
 async def update_user(
-    user_data: User,
+    user_data: UserUpdate,
     current_user: User = Depends(get_current_user),
     db: sqlite3.Connection = Depends(get_db),
 ):

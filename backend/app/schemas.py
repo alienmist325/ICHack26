@@ -249,16 +249,43 @@ class User(UserBase):
     notification_feed_changes_enabled: Optional[bool] = True
 
 
-class UserResponse(User):
+class UserUpdate(BaseModel):
+    """Schema for updating user profile - all fields optional."""
+
+    bio: Optional[str] = None
+    dream_property_description: Optional[str] = None
+    preferred_price_min: Optional[int] = None
+    preferred_price_max: Optional[int] = None
+    preferred_bedrooms_min: Optional[int] = None
+    preferred_property_types: Optional[List[str]] = None
+    preferred_locations: Optional[List[str]] = None
+    notification_viewing_reminder_days: Optional[int] = None
+    notification_email_enabled: Optional[bool] = None
+    notification_in_app_enabled: Optional[bool] = None
+    notification_feed_changes_enabled: Optional[bool] = None
+
+
+class UserResponse(BaseModel):
     """Schema for reading user profile from the database."""
 
     id: int
+    email: str
+    is_active: bool
+    bio: Optional[str] = None
+    dream_property_description: Optional[str] = None
+    preferred_price_min: Optional[int] = None
+    preferred_price_max: Optional[int] = None
+    preferred_bedrooms_min: Optional[int] = None
+    preferred_property_types: Optional[List[str]] = None
+    preferred_locations: Optional[List[str]] = None
     notification_viewing_reminder_days: int
     notification_email_enabled: bool
     notification_in_app_enabled: bool
     notification_feed_changes_enabled: bool
     created_at: str
     updated_at: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class NotificationSettings(BaseModel):
