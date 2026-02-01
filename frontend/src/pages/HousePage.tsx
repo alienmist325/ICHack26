@@ -570,15 +570,25 @@ export function HousePage() {
         </RatingContainer>
 
         <InfoRow>
-          <TravelTimeDisplay
-            property_id={currentHouse?.id ?? 0}
-          ></TravelTimeDisplay>
+          <TravelTimeDisplay property_id={1}></TravelTimeDisplay>
         </InfoRow>
 
         <ActionBar>
           <StarButton
             isBookmarked={isBookmarked}
             onClick={handleToggleBookmark}
+            disabled={isVoting}
+            title="Add to bookmarks"
+          >
+            {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
+            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+          </StarButton>
+
+          <StarButton
+            isBookmarked={isBookmarked}
+            onClick={() => {
+              api.verifyProperty("2");
+            }}
             disabled={isVoting}
             title="Add to bookmarks"
           >

@@ -155,6 +155,17 @@ class ApiClient {
     return this.handleResponse(response);
   }
 
+  async verifyProperty(id: string): Promise<GeocodeResponse> {
+    const response = await fetch(`${this.baseUrl}/property/${id}/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return this.handleResponse(response);
+  }
+
   async getTravelTimes(body: TravelTimeRequest): Promise<TravelTimeResponse> {
     const response = await fetch(`${this.baseUrl}/routing/travel-times`, {
       method: "POST",
