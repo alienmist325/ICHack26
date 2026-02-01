@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiCheck, FiX } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import { SiApple, SiMicrosoft } from 'react-icons/si';
+import { SiApple } from 'react-icons/si';
+import { FaMicrosoft } from 'react-icons/fa';
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -587,7 +588,7 @@ export function RegisterPage() {
             <SiApple size={24} />
           </OAuthButton>
           <OAuthButton title="Sign up with Microsoft">
-            <SiMicrosoft size={24} color="#00a4ef" />
+            <FaMicrosoft size={24} color="#00a4ef" />
           </OAuthButton>
         </OAuthContainer>
 

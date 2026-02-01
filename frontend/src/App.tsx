@@ -1,7 +1,6 @@
 import "./App.css";
 import styled from "styled-components";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
 import {
   FilterContext,
   useSetupFilter,
@@ -37,14 +36,6 @@ function App() {
   const globalData = useSetupGlobalData();
   const toast = useSetupToast();
   const auth = useSetupAuth();
-
-  // Set global contexts for hooks
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.__toastContext = toast;
-      window.__authContext = auth;
-    }
-  }, [toast, auth]);
 
   return (
     <AuthContext.Provider value={auth}>

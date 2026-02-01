@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback, useContext } from "react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -48,16 +48,11 @@ export function useSetupToast() {
 }
 
 export function useToast() {
-  const context = window.__toastContext as ToastContextType | undefined;
+  const context = useContext(ToastContext);
   if (!context) {
     throw new Error("useToast must be used within ToastProvider");
   }
   return context;
 }
 
-// Extend window for toast context
-declare global {
-  interface Window {
-    __toastContext?: ToastContextType;
-  }
-}
+

@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useGlobalData } from "../hooks/useGlobalData";
 import { api } from "../../api/client";
 import { rightMoveBlue } from "../../constants";
+import { useToast } from "../hooks/useToast";
 
 const Pane = styled.div<{ isOpen: boolean }>`
   width: ${(props) => (props.isOpen ? "20rem" : "2rem")};
@@ -126,6 +127,7 @@ const ApplyButton = styled.button`
 export const FilterPane = () => {
   const [isOpen, setIsOpen] = useState(true);
   const { setHousesWithFilters, setError } = useGlobalData();
+  const { addToast } = useToast();
 
   // Filter state
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
@@ -203,20 +205,15 @@ export const FilterPane = () => {
       }
 
       // Show toast notification
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        const message = response.total_count === 0 
-          ? "No properties found matching your filters"
-          : `Found ${response.total_count} properties matching your filters`;
-        window.__toastContext.addToast(message, response.total_count === 0 ? "info" : "success", 2000);
-      }
+      const message = response.total_count === 0 
+        ? "No properties found matching your filters"
+        : `Found ${response.total_count} properties matching your filters`;
+      addToast(message, response.total_count === 0 ? "info" : "success", 2000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to apply filters";
       setError(errorMessage);
       console.error("Error applying filters:", err);
-      
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        window.__toastContext.addToast("Failed to apply filters", "error", 3000);
-      }
+      addToast("Failed to apply filters", "error", 3000);
     } finally {
       setIsApplying(false);
     }

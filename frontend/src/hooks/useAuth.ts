@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useState, useCallback, useEffect, useContext } from 'react';
 import { api } from '../api/client';
 
 export interface AuthTokens {
@@ -184,15 +184,11 @@ export function useSetupAuth(): AuthContextType {
 }
 
 export function useAuth(): AuthContextType {
-  const context = window.__authContext as AuthContextType | undefined;
+  const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }
 
-declare global {
-  interface Window {
-    __authContext?: AuthContextType;
-  }
-}
+

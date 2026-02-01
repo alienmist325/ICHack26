@@ -4,6 +4,7 @@ import { House } from "../../types";
 import { Button } from "./Button";
 import { rightMoveBlue } from "../../constants";
 import { api } from "../../api/client";
+import { useToast } from "../hooks/useToast";
 
 import { IoBed } from "react-icons/io5";
 import { GiHouse } from "react-icons/gi";
@@ -279,6 +280,7 @@ type PropertyStatus = "interested" | "viewing" | "offer" | "accepted" | null;
 
 export function HouseCard(props: HouseCardProps) {
   const { house } = props;
+  const { addToast } = useToast();
   const [isHovering, setIsHovering] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [autoPlayInterval, setAutoPlayInterval] = useState<NodeJS.Timeout | null>(null);
@@ -338,15 +340,11 @@ export function HouseCard(props: HouseCardProps) {
       setUserVote(voteType);
       
       // Show toast notification
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        const message = voteType === "upvote" ? "⭐ Starred this property!" : "❌ Marked as gone from market!";
-        window.__toastContext.addToast(message, "success", 2000);
-      }
+      const message = voteType === "upvote" ? "⭐ Starred this property!" : "❌ Marked as gone from market!";
+      addToast(message, "success", 2000);
     } catch (err) {
       console.error("Failed to vote:", err);
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        window.__toastContext.addToast("Failed to record rating", "error", 3000);
-      }
+      addToast("Failed to record rating", "error", 3000);
     } finally {
       setIsVoting(false);
     }
@@ -358,21 +356,15 @@ export function HouseCard(props: HouseCardProps) {
       if (isBookmarked) {
         await api.unstarProperty(house.id);
         setIsBookmarked(false);
-        if (typeof window !== 'undefined' && window.__toastContext) {
-          window.__toastContext.addToast("Removed from bookmarks", "success", 2000);
-        }
+        addToast("Removed from bookmarks", "success", 2000);
       } else {
         await api.starProperty(house.id);
         setIsBookmarked(true);
-        if (typeof window !== 'undefined' && window.__toastContext) {
-          window.__toastContext.addToast("Added to bookmarks", "success", 2000);
-        }
+        addToast("Added to bookmarks", "success", 2000);
       }
     } catch (err) {
       console.error("Failed to bookmark:", err);
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        window.__toastContext.addToast("Failed to update bookmark", "error", 3000);
-      }
+      addToast("Failed to update bookmark", "error", 3000);
     } finally {
       setIsVoting(false);
     }
@@ -385,15 +377,11 @@ export function HouseCard(props: HouseCardProps) {
         await api.setPropertyStatus(house.id, status);
       }
       setPropertyStatus(status);
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        const statusText = status ? `Status updated to "${status}"` : "Status cleared";
-        window.__toastContext.addToast(statusText, "success", 2000);
-      }
+      const statusText = status ? `Status updated to "${status}"` : "Status cleared";
+      addToast(statusText, "success", 2000);
     } catch (err) {
       console.error("Failed to update status:", err);
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        window.__toastContext.addToast("Failed to update status", "error", 3000);
-      }
+      addToast("Failed to update status", "error", 3000);
     } finally {
       setIsUpdatingStatus(false);
     }
