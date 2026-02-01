@@ -22,8 +22,13 @@ def test_mock_client_basic_flow():
 
     client = get_bland_client()
 
-    # Make a mock call
-    call_id = client.make_call("+44 7580 574377", "Test task")
+    # Make a mock call using configured phone number
+    phone_number = settings.bland_ai_mock_phone_number
+    assert phone_number is not None, (
+        "BLAND_AI_MOCK_PHONE_NUMBER must be set in .env for mock testing"
+    )
+
+    call_id = client.make_call(phone_number, "Test task")
     assert call_id is not None
     assert call_id.startswith("mock_call_")
 
@@ -87,4 +92,14 @@ def test_mock_mode_setting_configurable():
 
 def test_mock_phone_number_configured():
     """Test that mock phone number is configured."""
-    assert settings.bland_ai_mock_phone_number == "+44 7580 574377"
+    # In mock mode, phone number must be set in .env
+    if settings.bland_ai_mock_mode:
+        assert settings.bland_ai_mock_phone_number is not None, (
+            "BLAND_AI_MOCK_PHONE_NUMBER must be set in .env when BLAND_AI_MOCK_MODE=true"
+        )
+        assert isinstance(settings.bland_ai_mock_phone_number, str)
+        assert settings.bland_ai_mock_phone_number.startswith("+")
+    else:
+        # When mock mode is off, phone number should be None (default)
+        # User must configure in .env if using mock mode
+        pass
