@@ -103,3 +103,136 @@ def test_mock_phone_number_configured():
         # When mock mode is off, phone number should be None (default)
         # User must configure in .env if using mock mode
         pass
+
+
+def test_transcript_analysis_simple_yes():
+    """Test analysis correctly identifies 'yes' responses."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    transcripts = [
+        'AGENT: "Is it available?" HUMAN: "Yes."',
+        'AGENT: "Status?" HUMAN: "Yes"',
+        'AGENT: "Is this property still available?" HUMAN: "Yes, it is."',
+    ]
+
+    for transcript in transcripts:
+        status = _analyze_transcript(transcript, "sale")
+        assert status == VerificationStatus.AVAILABLE, f"Failed for: {transcript}"
+
+
+def test_transcript_analysis_simple_no():
+    """Test analysis correctly identifies 'no' responses."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    transcripts = [
+        'AGENT: "Is it available?" HUMAN: "No."',
+        'AGENT: "Status?" HUMAN: "No"',
+        'AGENT: "Still on market?" HUMAN: "Nope."',
+        'AGENT: "Available?" HUMAN: "No, sorry."',
+    ]
+
+    for transcript in transcripts:
+        status = _analyze_transcript(transcript, "sale")
+        assert status == VerificationStatus.UNAVAILABLE, f"Failed for: {transcript}"
+
+
+def test_transcript_analysis_sold_keywords():
+    """Test analysis correctly identifies sold/rented properties."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    transcripts = [
+        "That property has been sold already.",
+        "It was rented out last month.",
+        "The property has already been let.",
+        "It's off the market - sold.",
+        "That one's no longer listed.",
+        "The property was withdrawn from the market.",
+    ]
+
+    for transcript in transcripts:
+        status = _analyze_transcript(transcript, "sale")
+        assert status == VerificationStatus.UNAVAILABLE, f"Failed for: {transcript}"
+
+
+def test_transcript_analysis_available_keywords():
+    """Test analysis correctly identifies available properties."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    transcripts = [
+        "Yes, the property is still available for rent.",
+        "We still have this listed for sale.",
+        "It's still on the market actively.",
+        "We haven't sold that one yet.",
+        "That's still our current listing.",
+        "The property is still for sale with us.",
+        "We're actively marketing that property.",
+    ]
+
+    for transcript in transcripts:
+        status = _analyze_transcript(transcript, "sale")
+        assert status == VerificationStatus.AVAILABLE, f"Failed for: {transcript}"
+
+
+def test_transcript_analysis_unsure_keywords():
+    """Test analysis correctly identifies ambiguous responses."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    transcripts = [
+        "I'm not sure about that property.",
+        "Let me check our system... I'm not entirely sure.",
+        "Maybe it's still available, I can't find it quickly.",
+        "I think so, but I'd need to verify that.",
+        "The status might be... I'm not certain.",
+        "I can't find that one quickly in our system.",
+    ]
+
+    for transcript in transcripts:
+        status = _analyze_transcript(transcript, "sale")
+        assert status == VerificationStatus.UNSURE, f"Failed for: {transcript}"
+
+
+def test_transcript_analysis_negation_patterns():
+    """Test analysis correctly handles negation patterns."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    unavailable_transcripts = [
+        "Unfortunately it's not available anymore.",
+        "The property isn't listed anymore.",
+        "We don't have that one available.",
+        "I couldn't locate that property.",
+    ]
+
+    for transcript in unavailable_transcripts:
+        status = _analyze_transcript(transcript, "sale")
+        assert status == VerificationStatus.UNAVAILABLE, (
+            f"Failed (should be UNAVAILABLE): {transcript}"
+        )
+
+
+def test_transcript_analysis_edge_cases():
+    """Test analysis with edge cases and complex transcripts."""
+    from backend.services.verification.service import _analyze_transcript
+    from backend.services.verification.models import VerificationStatus
+
+    # Real transcript from user's example
+    real_transcript = (
+        "AGENT: \"Hi, I'm calling to check if One Hyde Park, Knightsbridge, London, "
+        "SW1X is still available for sale. Can you confirm if this property is still on "
+        'the market? Please just say yes or no." HUMAN: "No." AGENT: "Thank you for your '
+        'time. Goodbye."'
+    )
+    status = _analyze_transcript(real_transcript, "sale")
+    assert status == VerificationStatus.UNAVAILABLE, (
+        "Real example should classify as UNAVAILABLE"
+    )
+
+    # Empty or whitespace
+    assert _analyze_transcript("", "sale") == VerificationStatus.UNSURE
+    assert _analyze_transcript("   ", "sale") == VerificationStatus.UNSURE
+    assert _analyze_transcript(None, "sale") == VerificationStatus.UNSURE
