@@ -16,7 +16,6 @@ from backend.app.routers import (
     users,
     viewings,
 )
-from backend.config import settings
 from backend.app.schemas import (
     DistanceRequest,
     DistanceResponse,
@@ -36,6 +35,7 @@ from backend.app.schemas import (
     TravelTimeResponse,
     TravelTimeResult,
 )
+from backend.config import settings
 from backend.services.geocoding_service import GeocodingService
 from backend.services.routing_service import (
     RoutingService,

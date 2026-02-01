@@ -39,8 +39,8 @@ def test_mock_verification_transcript_analysis():
     if not settings.bland_ai_mock_mode:
         pytest.skip("Mock mode not enabled - set BLAND_AI_MOCK_MODE=true")
 
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     # Test AVAILABLE transcript
     available_transcript = "Yes, that property is still available for rent."
@@ -100,8 +100,8 @@ def test_mock_phone_number_configured():
 
 def test_transcript_analysis_simple_yes():
     """Test analysis correctly identifies 'yes' responses in Bland AI format."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     # Bland AI format: "A: question\n user: answer"
     transcripts = [
@@ -117,8 +117,8 @@ def test_transcript_analysis_simple_yes():
 
 def test_transcript_analysis_simple_no():
     """Test analysis correctly identifies 'no' responses in Bland AI format."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     # Bland AI format: "user: No." at start of response line
     transcripts = [
@@ -135,8 +135,8 @@ def test_transcript_analysis_simple_no():
 
 def test_transcript_analysis_sold_keywords():
     """Test analysis correctly identifies sold/rented properties."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     transcripts = [
         "That property has been sold already.",
@@ -154,8 +154,8 @@ def test_transcript_analysis_sold_keywords():
 
 def test_transcript_analysis_available_keywords():
     """Test analysis correctly identifies available properties."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     transcripts = [
         "Yes, the property is still available for rent.",
@@ -174,8 +174,8 @@ def test_transcript_analysis_available_keywords():
 
 def test_transcript_analysis_unsure_keywords():
     """Test analysis correctly identifies ambiguous responses."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     transcripts = [
         "I'm not sure about that property.",
@@ -193,8 +193,8 @@ def test_transcript_analysis_unsure_keywords():
 
 def test_transcript_analysis_negation_patterns():
     """Test analysis correctly handles negation patterns."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     unavailable_transcripts = [
         "Unfortunately it's not available anymore.",
@@ -212,8 +212,8 @@ def test_transcript_analysis_negation_patterns():
 
 def test_transcript_analysis_edge_cases():
     """Test analysis with edge cases and real API transcripts."""
-    from backend.services.verification.service import _analyze_transcript
     from backend.services.verification.models import VerificationStatus
+    from backend.services.verification.service import _analyze_transcript
 
     # Real transcript from Bland AI API (concatenated_transcript format)
     real_transcript = """A: Hi, I'm calling to check if One Hyde Park, Knightsbridge, London, SW1X is still available for sale. Can you confirm if this property is still on the market? Please just say yes or no. 
