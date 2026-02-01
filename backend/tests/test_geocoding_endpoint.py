@@ -8,12 +8,23 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
+from backend.services.geocoding_service import GeocodingService
+import backend.app.main as main_module
 
 
 @pytest.fixture
 def client():
-    """Create a test client for the FastAPI app."""
-    return TestClient(app)
+    """Create a test client for the FastAPI app with lifespan."""
+    # Initialize services before starting tests
+    main_module._routing_service = main_module.RoutingService()
+    main_module._geocoding_service = GeocodingService()
+
+    client = TestClient(app)
+    yield client
+
+    # Cleanup
+    main_module._routing_service = None
+    main_module._geocoding_service = None
 
 
 class TestGeocodeEndpoint:

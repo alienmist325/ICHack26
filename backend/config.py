@@ -14,9 +14,8 @@ class Settings(BaseSettings):
     """Configuration for Rightmove scraper and routing services."""
 
     # Apify configuration
-    apify_api_key: str = Field(
-        ...,
-        env="APIFY_API_KEY",
+    apify_api_key: Optional[str] = Field(
+        default=None,
         description="Apify API key for scraper access from console.apify.com",
     )
 
