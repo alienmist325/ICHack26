@@ -1,3 +1,5 @@
+import { LocationCoordinate } from "./api/client";
+
 export interface FilterStates {
   maxPrice?: number;
 }
@@ -14,6 +16,7 @@ export interface GlobalDataStates {
   pageSize: number;
   isLoading: boolean;
   error: string | null;
+  keyLocations: LocationCoordinate[];
 }
 
 export interface GlobalDataSetters {
@@ -24,8 +27,13 @@ export interface GlobalDataSetters {
   setIsLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateFiltersAndFetch?: (filters: any) => void;
-  setHousesWithFilters?: (houses: House[], totalCount: number, filters: any) => void;
+  setHousesWithFilters?: (
+    houses: House[],
+    totalCount: number,
+    filters: any
+  ) => void;
   currentFilters?: any;
+  setKeyLocations: (locations: LocationCoordinate[]) => void;
 }
 
 export type GlobalData = GlobalDataStates & GlobalDataSetters;

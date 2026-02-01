@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import { GlobalData, House } from "../../types";
-import { api } from "../../api/client";
+import { api, LocationCoordinate } from "../../api/client";
 
 export const GlobalDataContext = createContext<GlobalData | null>(null);
 
@@ -16,6 +16,7 @@ export function useSetupGlobalData(): GlobalData {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFilters, setCurrentFilters] = useState<any>(null);
+  const [keyLocations, setKeyLocations] = useState<LocationCoordinate[]>([]);
 
   // Fetch properties on mount
   useEffect(() => {
@@ -55,12 +56,17 @@ export function useSetupGlobalData(): GlobalData {
       setTotalCount(response.total_count);
       setCurrentPageState(page);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch properties";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch properties";
       setError(errorMessage);
       console.error("Error fetching properties:", err);
-      
-      if (typeof window !== 'undefined' && window.__toastContext) {
-        window.__toastContext.addToast("Failed to load properties. Please try again.", "error", 3000);
+
+      if (typeof window !== "undefined" && window.__toastContext) {
+        window.__toastContext.addToast(
+          "Failed to load properties. Please try again.",
+          "error",
+          3000
+        );
       }
     } finally {
       setIsLoading(false);
@@ -77,7 +83,11 @@ export function useSetupGlobalData(): GlobalData {
   };
 
   // Also expose a way to update filters from FilterPane and keep them in sync
-  const setHousesWithFilters = (newHouses: House[], totalCount: number, filters: any) => {
+  const setHousesWithFilters = (
+    newHouses: House[],
+    totalCount: number,
+    filters: any
+  ) => {
     setHouses(newHouses);
     setTotalCount(totalCount);
     setCurrentFilters(filters);
@@ -100,5 +110,7 @@ export function useSetupGlobalData(): GlobalData {
     currentFilters,
     updateFiltersAndFetch,
     setHousesWithFilters,
+    keyLocations,
+    setKeyLocations,
   };
 }

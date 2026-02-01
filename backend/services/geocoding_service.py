@@ -35,7 +35,7 @@ class GeocodingService:
         self._geocoder = Nominatim(user_agent="property-rental-finder/1.0")
         logger.info("Initialized GeocodingService with Nominatim provider")
 
-    def geocode_address(self, address: str) -> Optional[Tuple[float, float]]:
+    def geocode_address(self, address: str) -> Optional[Tuple[float, float, str]]:
         """
         Geocode an address string to latitude/longitude coordinates.
 
@@ -80,7 +80,7 @@ class GeocodingService:
                     f"Geocoded '{address}' to ({lat}, {lon}) "
                     f"(full address: {location.address})"
                 )
-                return (lat, lon)
+                return (lat, lon, location.address)
 
             logger.warning(f"No geocoding results found for address: '{address}'")
             return None
