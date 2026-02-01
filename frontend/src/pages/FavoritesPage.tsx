@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-// import { FiHeart } from "react-icons/fi";
+import { FiHeart } from "react-icons/fi";
 import BackgroundPattern from "../components/BackgroundPattern";
 import Button from "../components/FormElements/Button";
 import CardComponent from "../components/FormElements/Card";
@@ -82,13 +82,13 @@ export function FavoritesPage() {
 
   return (
     <>
-      <HeaderContainer hideSearch={true} />
+      <HeaderContainer />
       <PageContainer>
         <BackgroundPattern />
         <Content>
-          {/* <IconWrapper>
+          <IconWrapper>
             <FiHeart fill="currentColor" />
-          </IconWrapper> */}
+          </IconWrapper>
           <Title>Favorites</Title>
           <Description>
             Your favorite properties will appear here. This feature is coming
