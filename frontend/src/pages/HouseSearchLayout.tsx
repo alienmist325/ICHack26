@@ -7,7 +7,7 @@ import { HeaderContainer } from "../components/layout/HeaderContainer";
 import { FooterContainer } from "../components/layout/FooterContainer";
 import { HouseSearch } from "../components/screens/HouseSearch";
 import { NavigationPane } from "../components/layout/NavigationPane";
-import { rightMoveBlue } from "../constants";
+import { colors } from "../constants";
 import { Button } from "../components/layout/Button";
 import { useAuth } from "../hooks/useAuth";
 
@@ -17,7 +17,7 @@ const AppContent = styled.div`
 `;
 
 const SidebarButton = styled(Button)`
-  background-color: ${rightMoveBlue};
+  background-color: ${colors.rightMoveBlue};
   margin-left: 12px;
 `;
 
@@ -42,7 +42,7 @@ const UserInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  color: ${rightMoveBlue};
+  color: ${colors.rightMoveBlue};
   font-size: 14px;
 `;
 
@@ -60,8 +60,8 @@ const UserEmail = styled.span`
 
 const UserButton = styled(Button)`
   background-color: transparent;
-  color: ${rightMoveBlue};
-  border: 2px solid ${rightMoveBlue};
+  color: ${colors.rightMoveBlue};
+  border: 2px solid ${colors.rightMoveBlue};
   padding: 8px 12px;
   font-size: 14px;
   display: flex;
@@ -69,7 +69,7 @@ const UserButton = styled(Button)`
   gap: 6px;
 
   &:hover {
-    background-color: ${rightMoveBlue};
+    background-color: ${colors.rightMoveBlue};
     color: white;
   }
 `;

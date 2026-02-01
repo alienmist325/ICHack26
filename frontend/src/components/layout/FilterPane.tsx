@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useGlobalData } from "../hooks/useGlobalData";
 import { api } from "../../api/client";
-import { rightMoveBlue } from "../../constants";
+import { colors } from "../../constants";
 import { useToast } from "../hooks/useToast";
 
 const Pane = styled.div<{ isOpen: boolean }>`
@@ -73,7 +73,7 @@ const StyledInput = styled.input`
   
   &:focus {
     outline: none;
-    border-color: ${rightMoveBlue};
+    border-color: ${colors.rightMoveBlue};
     box-shadow: 0 0 0 2px rgba(240, 80, 40, 0.1);
   }
 `;
@@ -87,7 +87,7 @@ const StyledSelect = styled.select`
   
   &:focus {
     outline: none;
-    border-color: ${rightMoveBlue};
+    border-color: ${colors.rightMoveBlue};
     box-shadow: 0 0 0 2px rgba(240, 80, 40, 0.1);
   }
 `;
@@ -101,7 +101,7 @@ const ApplyButtonContainer = styled.div`
 const ApplyButton = styled.button`
   width: 100%;
   padding: 0.75rem 1rem;
-  background-color: ${rightMoveBlue};
+  background-color: ${colors.rightMoveBlue};
   color: white;
   border: none;
   border-radius: 4px;
@@ -205,7 +205,7 @@ export const FilterPane = () => {
       }
 
       // Show toast notification
-      const message = response.total_count === 0 
+      const message = response.total_count === 0
         ? "No properties found matching your filters"
         : `Found ${response.total_count} properties matching your filters`;
       addToast(message, response.total_count === 0 ? "info" : "success", 2000);

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { House } from "../../types";
 import { Button } from "./Button";
-import { rightMoveBlue } from "../../constants";
+import { colors } from "../../constants";
 import { api } from "../../api/client";
 import { useToast } from "../hooks/useToast";
 
@@ -151,8 +151,8 @@ const RatingButton = styled.button<{ isActive: boolean }>`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid ${(props) => (props.isActive ? rightMoveBlue : "#ccc")};
-  background: ${(props) => (props.isActive ? rightMoveBlue : "white")};
+  border: 2px solid ${(props) => (props.isActive ? colors.rightMoveBlue : "#ccc")};
+  background: ${(props) => (props.isActive ? colors.rightMoveBlue : "white")};
   color: ${(props) => (props.isActive ? "white" : "#666")};
   border-radius: 20px;
   cursor: pointer;
@@ -160,8 +160,8 @@ const RatingButton = styled.button<{ isActive: boolean }>`
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${rightMoveBlue};
-    background: ${(props) => (props.isActive ? rightMoveBlue : "white")};
+    border-color: ${colors.rightMoveBlue};
+    background: ${(props) => (props.isActive ? colors.rightMoveBlue : "white")};
   }
 
   &:disabled {
@@ -225,12 +225,12 @@ const StatusSelect = styled.select`
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${rightMoveBlue};
+    border-color: ${colors.rightMoveBlue};
   }
 
   &:focus {
     outline: none;
-    border-color: ${rightMoveBlue};
+    border-color: ${colors.rightMoveBlue};
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
   }
 
@@ -260,8 +260,8 @@ const CommentsButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${rightMoveBlue};
-    color: ${rightMoveBlue};
+    border-color: ${colors.rightMoveBlue};
+    color: ${colors.rightMoveBlue};
   }
 
   &:disabled {
@@ -338,7 +338,7 @@ export function HouseCard(props: HouseCardProps) {
     try {
       await api.postRating(house.id, voteType);
       setUserVote(voteType);
-      
+
       // Show toast notification
       const message = voteType === "upvote" ? "⭐ Starred this property!" : "❌ Marked as gone from market!";
       addToast(message, "success", 2000);
@@ -457,76 +457,76 @@ export function HouseCard(props: HouseCardProps) {
           </Features>
         )}
 
-         <RatingContainer>
-           <RatingButton
-             isActive={userVote === "upvote"}
-             onClick={() => handleVote("upvote")}
-             disabled={isVoting}
-             title="Star this property"
-           >
-             {userVote === "upvote" ? <AiFillLike size={16} /> : <AiOutlineLike size={16} />}
-             <span>Star</span>
-           </RatingButton>
+        <RatingContainer>
+          <RatingButton
+            isActive={userVote === "upvote"}
+            onClick={() => handleVote("upvote")}
+            disabled={isVoting}
+            title="Star this property"
+          >
+            {userVote === "upvote" ? <AiFillLike size={16} /> : <AiOutlineLike size={16} />}
+            <span>Star</span>
+          </RatingButton>
 
-           <RatingButton
-             isActive={userVote === "downvote"}
-             onClick={() => handleVote("downvote")}
-             disabled={isVoting}
-             title="Mark as gone from market"
-           >
-             {userVote === "downvote" ? <AiFillDislike size={16} /> : <AiOutlineDislike size={16} />}
-             <span>Gone</span>
-           </RatingButton>
+          <RatingButton
+            isActive={userVote === "downvote"}
+            onClick={() => handleVote("downvote")}
+            disabled={isVoting}
+            title="Mark as gone from market"
+          >
+            {userVote === "downvote" ? <AiFillDislike size={16} /> : <AiOutlineDislike size={16} />}
+            <span>Gone</span>
+          </RatingButton>
 
-           {house.score !== undefined && (
-             <ScoreDisplay>
-               Score: {house.score.toFixed(1)}
-             </ScoreDisplay>
-           )}
-         </RatingContainer>
+          {house.score !== undefined && (
+            <ScoreDisplay>
+              Score: {house.score.toFixed(1)}
+            </ScoreDisplay>
+          )}
+        </RatingContainer>
 
-         <ActionBar>
-           <StarButton
-             isBookmarked={isBookmarked}
-             onClick={handleToggleBookmark}
-             disabled={isVoting}
-             title="Add to bookmarks"
-           >
-             {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
-             <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
-           </StarButton>
+        <ActionBar>
+          <StarButton
+            isBookmarked={isBookmarked}
+            onClick={handleToggleBookmark}
+            disabled={isVoting}
+            title="Add to bookmarks"
+          >
+            {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
+            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+          </StarButton>
 
-           <StatusSelect
-             value={propertyStatus || ""}
-             onChange={(e) => handleStatusChange((e.target.value as PropertyStatus) || null)}
-             disabled={isUpdatingStatus}
-             title="Track your property status"
-           >
-             <option value="">Set Status...</option>
-             <option value="interested">Interested</option>
-             <option value="viewing">Viewing Scheduled</option>
-             <option value="offer">Made Offer</option>
-             <option value="accepted">Offer Accepted</option>
-           </StatusSelect>
+          <StatusSelect
+            value={propertyStatus || ""}
+            onChange={(e) => handleStatusChange((e.target.value as PropertyStatus) || null)}
+            disabled={isUpdatingStatus}
+            title="Track your property status"
+          >
+            <option value="">Set Status...</option>
+            <option value="interested">Interested</option>
+            <option value="viewing">Viewing Scheduled</option>
+            <option value="offer">Made Offer</option>
+            <option value="accepted">Offer Accepted</option>
+          </StatusSelect>
 
-           <CommentsButton
-             onClick={() => setShowComments(!showComments)}
-             title="View and add comments"
-           >
-             <FiMessageCircle size={16} />
-             <span>Comments</span>
-             <CommentCount>({commentCount})</CommentCount>
-           </CommentsButton>
-         </ActionBar>
+          <CommentsButton
+            onClick={() => setShowComments(!showComments)}
+            title="View and add comments"
+          >
+            <FiMessageCircle size={16} />
+            <span>Comments</span>
+            <CommentCount>({commentCount})</CommentCount>
+          </CommentsButton>
+        </ActionBar>
 
-         {showComments && (
-           <CommentsSection>
-             <p style={{ color: "#999", fontSize: "0.9rem" }}>
-               Comments feature coming soon! This property has {commentCount} comments.
-             </p>
-           </CommentsSection>
-         )}
-       </ContentContainer>
-     </CardContainer>
-   );
- }
+        {showComments && (
+          <CommentsSection>
+            <p style={{ color: "#999", fontSize: "0.9rem" }}>
+              Comments feature coming soon! This property has {commentCount} comments.
+            </p>
+          </CommentsSection>
+        )}
+      </ContentContainer>
+    </CardContainer>
+  );
+}

@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { rightMoveBlue } from "../../constants";
+import { colors } from "../../constants";
 
 const PaginationContainer = styled.div`
   display: flex;
@@ -30,16 +30,16 @@ const NavButton = styled.button<{ disabled?: boolean }>`
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border: 2px solid ${rightMoveBlue};
+  border: 2px solid ${colors.rightMoveBlue};
   background-color: white;
-  color: ${rightMoveBlue};
+  color: ${colors.rightMoveBlue};
   border-radius: 50%;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    background-color: ${rightMoveBlue};
+    background-color: ${colors.rightMoveBlue};
     color: white;
     transform: scale(1.05);
   }
@@ -67,12 +67,12 @@ const PageDot = styled.button<{ isActive: boolean }>`
   height: 0.75rem;
   border-radius: 50%;
   border: none;
-  background-color: ${(props) => (props.isActive ? rightMoveBlue : "#ccc")};
+  background-color: ${(props) => (props.isActive ? colors.rightMoveBlue : "#ccc")};
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${(props) => (props.isActive ? rightMoveBlue : "#999")};
+    background-color: ${(props) => (props.isActive ? colors.rightMoveBlue : "#999")};
     transform: scale(1.2);
   }
 `;
