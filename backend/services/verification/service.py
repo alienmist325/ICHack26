@@ -112,11 +112,35 @@ def _analyze_transcript(
     # Advanced pattern-based analysis for more nuanced responses
     import re
 
-    # Look for negation patterns (more context-aware)
+    # Extract user responses from various transcript formats
+    # Format 1: "user: No." (concatenated transcript from Bland AI)
+    # Format 2: Plain text with user statements
+    user_response_patterns = [
+        r'\buser:\s*["\']?(\w+)["\']?',  # "user: No." or user: Yes
+        r'\b(?:caller|user|prospect|tenant|buyer)(?:\s+(?:said|responded|replied))?\s*["\']?(\w+)["\']?',  # Alternative formats
+    ]
+
+    user_statements = []
+    for pattern in user_response_patterns:
+        matches = re.findall(pattern, lower_transcript)
+        user_statements.extend(matches)
+
+    logger.debug(f"Extracted user statements: {user_statements}")
+
+    # Check simple yes/no responses from user
+    for statement in user_statements:
+        if statement in ["no", "nope", "nope.", "no."]:
+            logger.info(f"Detected 'no' response from user: '{statement}'")
+            return VerificationStatus.UNAVAILABLE
+        elif statement in ["yes", "yes.", "yep", "yep."]:
+            logger.info(f"Detected 'yes' response from user: '{statement}'")
+            return VerificationStatus.AVAILABLE
+
+    # Look for negation patterns (context-aware)
     negation_patterns = [
-        r'\bhuman[:\s]+["\']?(?:no|nope)["\']?',  # Simple no/nope from human
-        r"(?:it\'s not|isn\'t|not)\s+(?:available|listed|on the market)",  # Negated availability
+        r"(?:it\'s not|isn\'t|not)\s+(?:available|listed|on the market|for sale)",  # Negated availability
         r"(?:don\'t have|can\'t find|couldn\'t locate)\s+(?:that|this|the property)",  # Can't locate
+        r"(?:no longer|not anymore|never)\s+(?:available|listed|for sale|for rent)",  # Time-based negation
     ]
 
     for pattern in negation_patterns:
@@ -126,8 +150,8 @@ def _analyze_transcript(
 
     # Look for affirmation patterns
     affirmation_patterns = [
-        r'\bhuman[:\s]+["\']?yes["\']?',  # Simple yes from human
-        r"(?:we still have|we\'re still|we continue to|currently)",  # Present tense availability
+        r"(?:we still have|we\'re still|we continue to|currently\s+(?:have|list))",  # Present tense availability
+        r"(?:still\s+(?:available|listed|on\s+market))",  # Still available
     ]
 
     for pattern in affirmation_patterns:
