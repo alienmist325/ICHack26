@@ -3,7 +3,7 @@
 import logging
 from typing import Optional
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 # Configure logging for this module
@@ -36,11 +36,12 @@ class Settings(BaseSettings):
         description="Timeout for routing API requests in seconds",
     )
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"  # Ignore extra fields from .env
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",  # Ignore extra fields from .env
+    )
 
     def __init__(self, **kwargs):
         """Initialize settings and log configuration load."""
