@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class VerificationStatus(str, Enum):
@@ -32,20 +32,22 @@ class BlandCallResponse(BaseModel):
 
 
 class BlandCallResult(BaseModel):
-    """Result model for a completed Bland AI call."""
+    """Result model for a completed Bland AI call.
+
+    Uses flexible validation to handle various Bland AI API response formats.
+    """
 
     call_id: str
     status: str
-    duration: int
+    duration: int = 0
     transcript: Optional[str] = None
-    success: bool
+    success: bool = False
     data: Optional[Dict[str, Any]] = None
 
-    class Config:
-        """Pydantic config for flexible validation."""
-
-        # Allow extra fields from Bland AI API response
-        extra = "allow"
+    model_config = ConfigDict(
+        extra="allow",  # Allow extra fields from Bland AI API response
+        validate_assignment=True,  # Allow assignment after creation for mock client
+    )
 
 
 class VerificationRequest(BaseModel):

@@ -6,6 +6,7 @@ import time
 from typing import Any, Optional
 
 import requests
+from pydantic import ValidationError
 
 from backend.config import settings
 from backend.services.verification.models import BlandCallResult
@@ -101,14 +102,22 @@ class BlandAIClient:
             # Also returns call_length (not duration), status, etc.
             transcript = data.get("concatenated_transcript") or data.get("transcript")
 
+            # Handle duration conversion safely - Bland AI may return string or int
+            call_length = data.get("call_length", 0)
+            try:
+                duration = int(call_length) if call_length else 0
+            except (ValueError, TypeError):
+                logger.warning(
+                    f"Could not parse call_length as int: {call_length} (type: {type(call_length).__name__})"
+                )
+                duration = 0
+
             result = BlandCallResult(
                 call_id=call_id,
-                status=data.get("status", "unknown"),
-                duration=int(data.get("call_length", 0))
-                if data.get("call_length")
-                else 0,
+                status=str(data.get("status", "unknown")),
+                duration=duration,
                 transcript=transcript,
-                success=data.get("success", False),
+                success=bool(data.get("success", False)),
                 data=data.get("data"),
             )
             logger.debug(
@@ -118,6 +127,10 @@ class BlandAIClient:
             return result
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get Bland AI call result: {e}")
+            return None
+        except ValidationError as e:
+            logger.error(f"Pydantic validation error parsing Bland AI response: {e}")
+            logger.error(f"Raw API data: {data}")
             return None
         except ValueError as e:
             logger.error(f"Failed to parse Bland AI response: {e}")
