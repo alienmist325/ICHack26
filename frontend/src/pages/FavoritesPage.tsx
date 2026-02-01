@@ -5,7 +5,7 @@ import BackgroundPattern from "../components/BackgroundPattern";
 import Button from "../components/FormElements/Button";
 import CardComponent from "../components/FormElements/Card";
 import { colors } from "../constants";
-import { HeaderContainer } from "../components/layout/HeaderContainer";
+import UnifiedHeader from "../components/layout/UnifiedHeader";
 import { FooterContainer } from "../components/layout/FooterContainer";
 
 const PageContainer = styled.div`
@@ -82,7 +82,7 @@ export function FavoritesPage() {
 
   return (
     <>
-      <HeaderContainer />
+      <UnifiedHeader />
       <PageContainer>
         <BackgroundPattern />
         <Content>

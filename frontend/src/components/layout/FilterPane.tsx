@@ -96,30 +96,10 @@ const FilterLabel = styled.label`
   font-weight: 600;
   font-size: 0.9rem;
   color: ${colors.darkText};
-  position: relative;
-  display: inline-block;
-  padding-bottom: 4px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, ${colors.teal} 0%, ${colors.purple} 100%);
-    border-radius: 1px;
-    animation: slideInWidth 0.4s ease-out;
-  }
-
-  @keyframes slideInWidth {
-    from {
-      width: 0;
-    }
-    to {
-      width: 100%;
-    }
-  }
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  display: block;
+  border-bottom: 1px solid ${colors.borderColor};
 `;
 
 const StyledInput = styled.input`

@@ -11,7 +11,7 @@ import FormInput from "../components/FormElements/Input";
 import CardComponent from "../components/FormElements/Card";
 import PageHeader from "../components/PageHeader";
 import { colors, spacing, animations } from "../constants";
-import { HeaderContainer } from "../components/layout/HeaderContainer";
+import UnifiedHeader from "../components/layout/UnifiedHeader";
 import { FooterContainer } from "../components/layout/FooterContainer";
 
 const PageContainer = styled.div`
@@ -341,7 +341,7 @@ export function ProfilePage() {
   if (loading) {
     return (
       <>
-        <HeaderContainer />
+        <UnifiedHeader />
         <PageContainer>
           <Container>
             <CardWrapper>
@@ -358,7 +358,7 @@ export function ProfilePage() {
 
   return (
     <>
-      <HeaderContainer hideSearch={true} />
+      <UnifiedHeader />
       <PageContainer>
         <Container>
           <CardWrapper>

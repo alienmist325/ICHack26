@@ -1,16 +1,14 @@
 import styled from "styled-components";
 import { useState } from "react";
-import { GiMushroomHouse } from "react-icons/gi";
-import { FiLogOut, FiUser, FiSettings } from "react-icons/fi";
+import { FiLogOut, FiUser, FiSettings, FiHeart } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { HeaderContainer } from "../components/layout/HeaderContainer";
 import { FooterContainer } from "../components/layout/FooterContainer";
 import { HouseSearch } from "../components/screens/HouseSearch";
-import { NavigationPane } from "../components/layout/NavigationPane";
-import { colors, animations, spacing } from "../constants";
-import { Button } from "../components/layout/Button";
+import { colors, spacing, animations } from "../constants";
 import { useAuth } from "../hooks/useAuth";
 import BackgroundPattern from "../components/BackgroundPattern";
+import LeftMoveLogo from "../components/LeftMoveLogo";
 
 const AppContent = styled.div`
   flex: 1;
@@ -69,7 +67,9 @@ const ContentWrapper = styled.div`
   }
 `;
 
-const SidebarButton = styled.button`
+
+
+const IconButton = styled.button`
   background: none;
   border: none;
   color: ${colors.medText};
@@ -81,7 +81,6 @@ const SidebarButton = styled.button`
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  margin-left: 8px;
 
   &:hover {
     color: ${colors.teal};
@@ -94,38 +93,40 @@ const SidebarButton = styled.button`
   }
 `;
 
-const TopRightCorner = styled.div`
-  position: absolute;
-  right: 0;
-  top: 0;
-  margin: 0.75rem;
+const AccountIcon = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: ${colors.teal}20;
+  border: 2px solid ${colors.teal};
   display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: ${colors.teal};
+  cursor: pointer;
+  transition: all ${animations.base};
+
+  &:hover {
+    background-color: ${colors.teal}30;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const IconsContainer = styled.div`
+  display: flex;
+  align-items: center;
   gap: 12px;
 `;
 
-const CenteredContainer = styled.div`
+const LogoAndText = styled.div`
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100%;
-  gap: 20px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: ${colors.medText};
-`;
-
-const LogoIcon = styled.div`
-  font-size: 2rem;
-  animation: float 3s ease-in-out infinite;
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-8px);
-    }
-  }
+  gap: 16px;
 `;
 
 
@@ -181,55 +182,48 @@ const AccountIcon = styled.div`
 export function HouseSearchLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
-
   return (
     <>
       <HeaderContainer>
-        <>
-          <CenteredContainer>
-            <LogoIcon>
-              <GiMushroomHouse />
-            </LogoIcon>
-            Not Rightmove
-          </CenteredContainer>
+        <LogoAndText>
+          <LeftMoveLogo onClick={() => navigate('/')} />
+        </LogoAndText>
 
-          <TopRightCorner>
-            {user && (
-              <AccountIcon 
-                onClick={() => navigate('/profile')} 
-                title={user.email}
-              >
-                <FiUser />
-              </AccountIcon>
-            )}
-            <IconButton 
-              onClick={() => navigate('/settings')} 
-              title="Settings"
+        <IconsContainer>
+          <IconButton 
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <FiLogOut />
+          </IconButton>
+          <IconButton 
+            onClick={() => navigate('/settings')} 
+            title="Settings"
+          >
+            <FiSettings />
+          </IconButton>
+          <IconButton 
+            onClick={() => navigate('/favorites')} 
+            title="Favorites"
+          >
+            <FiHeart />
+          </IconButton>
+          {user && (
+            <AccountIcon 
+              onClick={() => navigate('/profile')} 
+              title={user.email}
             >
-              <FiSettings />
-            </IconButton>
-            <IconButton 
-              onClick={handleLogout}
-              title="Logout"
-            >
-              <FiLogOut />
-            </IconButton>
-            <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
-          </TopRightCorner>
-        </>
+              <FiUser />
+            </AccountIcon>
+          )}
+        </IconsContainer>
       </HeaderContainer>
-      <NavigationPane
-        leftSidebarOpen={leftSidebarOpen}
-        toggleLeftSidebar={toggleLeftSidebar}
-      />
       <AppContent>
         <BackgroundPatternWrapper>
           <BackgroundPattern />

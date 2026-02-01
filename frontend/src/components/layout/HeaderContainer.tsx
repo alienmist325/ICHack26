@@ -9,7 +9,8 @@ export const HeaderContainer = styled.header`
   display: flex;
   padding: ${spacing.lg} ${spacing.xl};
   font-size: 1.3rem;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   font-weight: 600;
   border-bottom: 2px solid ${colors.borderColor};
   box-shadow: ${shadows.light};
@@ -23,15 +24,5 @@ export const HeaderContainer = styled.header`
     width: 100%;
     height: 3px;
     background: linear-gradient(90deg, ${colors.teal} 0%, ${colors.purple} 100%);
-    animation: slideInWidth 0.6s ease-out;
-  }
-
-  @keyframes slideInWidth {
-    from {
-      width: 0;
-    }
-    to {
-      width: 100%;
-    }
   }
 `;
