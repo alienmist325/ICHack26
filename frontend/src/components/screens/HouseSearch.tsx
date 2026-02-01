@@ -57,6 +57,8 @@ const MainContent = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: ${colors.white};
+  border-left: 2px solid ${colors.borderColor};
 `;
 
 const ListWrapper = styled.div`

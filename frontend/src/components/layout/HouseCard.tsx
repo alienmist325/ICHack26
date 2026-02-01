@@ -27,10 +27,13 @@ const CardContainer = styled.div`
   border-bottom: 1px solid ${colors.borderColor};
   transition: all 0.3s ease;
   background-color: ${colors.white};
+  position: relative;
+  border-left: 4px solid transparent;
 
   &:hover {
     background-color: ${colors.lightBg};
     transform: translateX(4px);
+    border-left-color: ${colors.teal};
     box-shadow: inset 0 0 0 1px ${colors.borderColor};
   }
 `;

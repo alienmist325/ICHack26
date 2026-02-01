@@ -8,6 +8,8 @@ const PaginationContainer = styled.div`
   align-items: center;
   gap: 1rem;
   padding: 2rem 1rem;
+  border-top: 2px solid ${colors.borderColor};
+  background: linear-gradient(180deg, ${colors.white} 0%, ${colors.lightBg}80 100%);
 `;
 
 const ResultsInfo = styled.p`
