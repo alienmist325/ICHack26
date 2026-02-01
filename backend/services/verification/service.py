@@ -189,9 +189,19 @@ async def _wait_for_call_completion_async(
     call_id: str, max_wait_seconds: int = 120, poll_interval: float = 2.0
 ):
     """Async helper to wait for call completion with polling."""
+    client = get_bland_client()
+
+    # If client has async method (MockBlandAIClient), use it
+    if hasattr(client, "wait_for_call_completion_async"):
+        return await client.wait_for_call_completion_async(
+            call_id,
+            max_wait_seconds=max_wait_seconds,
+            poll_interval_seconds=poll_interval,
+        )
+
+    # Fallback: polling implementation for clients without async method
     import time
 
-    client = get_bland_client()
     start_time = time.time()
 
     while time.time() - start_time < max_wait_seconds:

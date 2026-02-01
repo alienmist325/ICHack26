@@ -19,6 +19,9 @@ from typing import Optional
 
 from backend.services.verification.models import BlandCallResult
 
+# Track completed calls globally to share state between sync and async calls
+_completed_calls: dict[str, BlandCallResult] = {}
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,8 +37,8 @@ class MockBlandAIClient:
         """
         self.timeout_seconds = timeout_seconds
         self.api_key = "mock"  # Placeholder
-        # In-memory storage for simulated calls
-        self._calls: dict[str, BlandCallResult] = {}
+        # Use global call storage to share state between sync and async methods
+        self._calls = _completed_calls
         logger.info("[MOCK] MockBlandAIClient initialized")
 
     def make_call(self, phone_number: str, task: str) -> Optional[str]:
@@ -149,6 +152,73 @@ class MockBlandAIClient:
 
         logger.warning(
             f"[MOCK] Timeout waiting for call {call_id} after {max_wait} seconds"
+        )
+        return None
+
+    async def wait_for_call_completion_async(
+        self,
+        call_id: str,
+        max_wait_seconds: Optional[int] = None,
+        poll_interval_seconds: float = 2.0,
+    ) -> Optional[BlandCallResult]:
+        """Async version: Wait for a simulated Bland AI call to complete.
+
+        This is the async equivalent of wait_for_call_completion.
+        Used by async verification service for non-blocking call monitoring.
+
+        Args:
+            call_id: The call ID to wait for
+            max_wait_seconds: Maximum seconds to wait (defaults to self.timeout_seconds)
+            poll_interval_seconds: Seconds between polls
+
+        Returns:
+            BlandCallResult when completed, None if timeout/error
+        """
+        if call_id not in self._calls:
+            logger.error(f"[MOCK] Async: Call {call_id} not found")
+            return None
+
+        logger.info(f"[MOCK] Async: Waiting for simulated call {call_id} to complete")
+
+        # Simulate call duration (2-5 seconds)
+        simulated_duration = random.uniform(2, 5)
+        logger.debug(
+            f"[MOCK] Async: Simulating {simulated_duration:.1f}s call duration"
+        )
+
+        max_wait = max_wait_seconds or self.timeout_seconds
+        start_time = time.time()
+
+        while time.time() - start_time < max_wait:
+            # Check if we've simulated enough time for call to complete
+            time_elapsed = time.time() - start_time
+
+            if time_elapsed >= simulated_duration:
+                # Call should be completed now
+                result = self._calls[call_id]
+
+                # Only generate transcript once
+                if result.transcript is None:
+                    result.transcript = self._generate_mock_transcript()
+                    result.duration = int(simulated_duration)
+                    result.status = "completed"
+                    result.success = True
+
+                    logger.info(
+                        f"[MOCK] Async: Call {call_id} completed with status: {result.status}"
+                    )
+                    logger.debug(f"[MOCK] Async: Transcript: {result.transcript}")
+
+                return result
+
+            # Still waiting for simulated duration
+            logger.debug(
+                f"[MOCK] Async: Call {call_id} still in progress ({time_elapsed:.1f}s/{simulated_duration:.1f}s)"
+            )
+            await asyncio.sleep(poll_interval_seconds)
+
+        logger.warning(
+            f"[MOCK] Async: Timeout waiting for call {call_id} after {max_wait} seconds"
         )
         return None
 
