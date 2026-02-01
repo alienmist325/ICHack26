@@ -37,6 +37,24 @@ class Settings(BaseSettings):
         description="Timeout for routing API requests in seconds",
     )
 
+    # Proxy configuration for scraping
+    proxy_url: Optional[str] = Field(
+        default=None,
+        description="Proxy URL for scraping (e.g., http://proxy.example.com:8080)",
+    )
+    proxy_username: Optional[str] = Field(
+        default=None,
+        description="Proxy username for authentication",
+    )
+    proxy_password: Optional[str] = Field(
+        default=None,
+        description="Proxy password for authentication",
+    )
+    proxy_country: Optional[str] = Field(
+        default=None,
+        description="Proxy country for country-specific routing",
+    )
+
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
