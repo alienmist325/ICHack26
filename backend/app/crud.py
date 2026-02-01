@@ -612,3 +612,158 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
         if row:
             return dict(zip([desc[0] for desc in cursor.description], row))
         return None
+
+      
+# ============================================================================      
+# Routing/Isochrone Query Functions
+# ============================================================================
+
+
+def get_properties_by_ids(property_ids: List[int]) -> List[Property]:
+    """
+    Get multiple properties by their IDs.
+
+    Args:
+        property_ids: List of property IDs to retrieve
+
+    Returns:
+        List of Property objects
+    """
+    if not property_ids:
+        return []
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+        placeholders = ",".join(["?" for _ in property_ids])
+        cursor.execute(
+            f"SELECT * FROM properties WHERE id IN ({placeholders})", property_ids
+        )
+        return [_row_to_property(row) for row in cursor.fetchall()]
+
+
+def get_all_properties_with_coordinates() -> List[Dict[str, Any]]:
+    """
+    Get all properties with their ID and coordinates.
+
+    Used for point-in-polygon queries against isochrone polygons.
+
+    Returns:
+        List of dicts with 'id', 'latitude', 'longitude' keys
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, latitude, longitude
+            FROM properties
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND removed = 0
+            """
+        )
+        return [
+            {
+                "id": row[0],
+                "latitude": row[1],
+                "longitude": row[2],
+            }
+            for row in cursor.fetchall()
+        ]
+
+
+def get_properties_with_isochrone_and_filters(
+    isochrone_property_ids: List[int],
+    filters: Optional[PropertyFilters] = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> tuple[List[PropertyWithScore], int]:
+    """
+    Get properties that are both inside isochrone AND match other filters.
+
+    This function:
+    1. Takes property IDs from an isochrone query
+    2. Applies additional filters (price, bedrooms, etc.)
+    3. Calculates scores for matched properties
+    4. Returns paginated results
+
+    Args:
+        isochrone_property_ids: Property IDs inside the isochrone polygon
+        filters: Optional additional PropertyFilters to apply
+        limit: Maximum number of results to return
+        offset: Pagination offset
+
+    Returns:
+        Tuple of (properties_with_scores, total_count)
+    """
+    if not isochrone_property_ids:
+        return [], 0
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # Build base query: must be in isochrone results
+        placeholders = ",".join(["?" for _ in isochrone_property_ids])
+        query = f"SELECT * FROM properties WHERE id IN ({placeholders})"
+        params: List[Any] = list(isochrone_property_ids)
+
+        # Apply additional filters if provided
+        if filters:
+            if filters.search_query is not None:
+                search = filters.search_query
+                query += " AND (listing_title LIKE ? OR full_address LIKE ? OR text_description LIKE ?)"
+                params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
+
+            if filters.min_price is not None:
+                query += " AND price >= ?"
+                params.append(filters.min_price)
+
+            if filters.max_price is not None:
+                query += " AND price <= ?"
+                params.append(filters.max_price)
+
+            if filters.min_bedrooms is not None:
+                query += " AND bedrooms >= ?"
+                params.append(filters.min_bedrooms)
+
+            if filters.max_bedrooms is not None:
+                query += " AND bedrooms <= ?"
+                params.append(filters.max_bedrooms)
+
+            if filters.property_type is not None:
+                query += " AND property_type = ?"
+                params.append(filters.property_type)
+
+            if filters.furnishing_type is not None:
+                query += " AND furnishing_type = ?"
+                params.append(filters.furnishing_type)
+
+            if filters.outcode is not None:
+                query += " AND outcode = ?"
+                params.append(filters.outcode)
+
+        query += " AND removed = 0"  # Always exclude removed properties
+        query += " ORDER BY created_at DESC"
+
+        # Get total count before pagination
+        count_query = query.replace("SELECT *", "SELECT COUNT(*)")
+        cursor.execute(count_query, params)
+        total_count = cursor.fetchone()[0]
+
+        # Get paginated results
+        query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+
+        cursor.execute(query, params)
+        properties = [_row_to_property(row) for row in cursor.fetchall()]
+
+    # Calculate scores for each property
+    properties_with_scores = []
+    for prop in properties:
+        prop_with_score = get_property_with_score(prop.id)
+        if prop_with_score:
+            min_score = filters.min_score if filters else None
+            if min_score is None or prop_with_score.score >= min_score:
+                properties_with_scores.append(prop_with_score)
+
+    # Sort by score (highest first)
+    properties_with_scores.sort(key=lambda p: p.score, reverse=True)
+
+    return properties_with_scores[:limit], total_count

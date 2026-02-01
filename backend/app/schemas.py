@@ -374,3 +374,84 @@ class SharedFeedDetailResponse(SharedFeedResponse):
 
     members: List[User] = []
     member_count: int = 0
+    # Isochrone-based filtering
+    isochrone_center_lat: Optional[float] = None
+    isochrone_center_lon: Optional[float] = None
+    isochrone_duration_seconds: Optional[int] = None
+
+
+# ============================================================================
+# Routing Service Schemas
+# ============================================================================
+
+
+class LocationCoordinate(BaseModel):
+    """A geographic location coordinate."""
+
+    latitude: float
+    longitude: float
+    label: Optional[str] = None  # e.g., "Work", "School", "Home"
+
+
+class IsochroneRequest(BaseModel):
+    """Request to find properties within an isochrone."""
+
+    property_id: int
+    duration_seconds: int = 600  # default 10 minutes
+
+
+class IsochroneResponse(BaseModel):
+    """Response with property IDs inside an isochrone."""
+
+    property_ids: List[int]
+    property_count: int
+    center_lat: float
+    center_lon: float
+
+
+class TravelTimeResult(BaseModel):
+    """Travel time calculation result."""
+
+    destination: LocationCoordinate
+    travel_time_seconds: int
+    travel_time_minutes: float
+
+
+class TravelTimeRequest(BaseModel):
+    """Request to calculate travel times."""
+
+    property_id: int
+    destinations: List[LocationCoordinate]
+
+
+class TravelTimeResponse(BaseModel):
+    """Response with travel times to multiple destinations."""
+
+    property_id: int
+    origin_lat: float
+    origin_lon: float
+    results: List[TravelTimeResult]
+
+
+class DistanceResult(BaseModel):
+    """Distance calculation result."""
+
+    destination: LocationCoordinate
+    distance_meters: int
+    distance_km: float
+
+
+class DistanceRequest(BaseModel):
+    """Request to calculate distances."""
+
+    property_id: int
+    destinations: List[LocationCoordinate]
+
+
+class DistanceResponse(BaseModel):
+    """Response with distances to multiple destinations."""
+
+    property_id: int
+    origin_lat: float
+    origin_lon: float
+    results: List[DistanceResult]
