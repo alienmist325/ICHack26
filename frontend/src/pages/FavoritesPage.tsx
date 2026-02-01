@@ -1,16 +1,17 @@
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const PageContainer = styled.div`
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  box-sizing: border-box;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 `;
 
 const Content = styled.div`
@@ -43,7 +44,9 @@ const BackButton = styled.button`
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
@@ -59,12 +62,11 @@ export function FavoritesPage() {
       <Content>
         <Title>Favorites</Title>
         <Description>
-          Your favorite properties will appear here. This feature is coming soon!
-          Browse properties on the home page and add them to your favorites.
+          Your favorite properties will appear here. This feature is coming
+          soon! Browse properties on the home page and add them to your
+          favorites.
         </Description>
-        <BackButton onClick={() => navigate('/')}>
-          Back to Home
-        </BackButton>
+        <BackButton onClick={() => navigate("/")}>Back to Home</BackButton>
       </Content>
     </PageContainer>
   );

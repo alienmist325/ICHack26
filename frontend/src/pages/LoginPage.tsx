@@ -1,15 +1,16 @@
-import styled from 'styled-components';
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
-import { SiApple } from 'react-icons/si';
-import { FaMicrosoft } from 'react-icons/fa';
+import styled from "styled-components";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import { SiApple } from "react-icons/si";
+import { FaMicrosoft } from "react-icons/fa";
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
+  box-sizing: border-box;
   background: linear-gradient(
     135deg,
     #667eea 0%,
@@ -23,7 +24,7 @@ const PageContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
   @keyframes gradientShift {
     0% {
@@ -216,7 +217,7 @@ const Divider = styled.div`
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     flex: 1;
     height: 1px;
     background: #e2e8f0;
@@ -301,8 +302,8 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, error } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -311,17 +312,17 @@ export function LoginPage() {
     setLocalError(null);
 
     if (!email || !password) {
-      setLocalError('Please enter email and password');
+      setLocalError("Please enter email and password");
       return;
     }
 
     try {
       await login(email, password);
       // Redirect to the page the user was trying to visit, or to home
-      const from = (location.state as any)?.from?.pathname || '/';
+      const from = (location.state as any)?.from?.pathname || "/";
       navigate(from);
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Login failed');
+      setLocalError(err instanceof Error ? err.message : "Login failed");
     }
   };
 
@@ -331,7 +332,9 @@ export function LoginPage() {
         <Title>Welcome Back</Title>
         <Subtitle>Sign in to your account to continue</Subtitle>
 
-        {(error || localError) && <ErrorMessage>{error || localError}</ErrorMessage>}
+        {(error || localError) && (
+          <ErrorMessage>{error || localError}</ErrorMessage>
+        )}
 
         <form onSubmit={handleSubmit}>
           <FormGroup>
@@ -357,7 +360,7 @@ export function LoginPage() {
                 <FiLock />
               </InputIcon>
               <Input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -382,7 +385,7 @@ export function LoginPage() {
           </RememberRow>
 
           <SubmitButton type="submit" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? "Signing in..." : "Sign In"}
           </SubmitButton>
         </form>
 
@@ -401,7 +404,8 @@ export function LoginPage() {
         </OAuthContainer>
 
         <SignupLink>
-          Don't have an account? <a onClick={() => navigate('/register')}>Sign up</a>
+          Don't have an account?{" "}
+          <a onClick={() => navigate("/register")}>Sign up</a>
         </SignupLink>
       </Card>
     </PageContainer>

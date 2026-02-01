@@ -1,15 +1,16 @@
-import styled from 'styled-components';
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { FiMail, FiLock, FiEye, FiEyeOff, FiCheck, FiX } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
-import { SiApple } from 'react-icons/si';
-import { FaMicrosoft } from 'react-icons/fa';
+import styled from "styled-components";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { FiMail, FiLock, FiEye, FiEyeOff, FiCheck, FiX } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import { SiApple } from "react-icons/si";
+import { FaMicrosoft } from "react-icons/fa";
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
+  box-sizing: border-box;
   background: linear-gradient(
     135deg,
     #667eea 0%,
@@ -23,7 +24,7 @@ const PageContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
   @keyframes gradientShift {
     0% {
@@ -164,14 +165,16 @@ interface StrengthBarFillProps {
 
 const StrengthBarFill = styled.div<StrengthBarFillProps>`
   height: 100%;
-  width: ${props => (props.strength / 4) * 100}%;
-  background: ${props => {
-    if (props.strength < 2) return '#f56565';
-    if (props.strength < 3) return '#ed8936';
-    if (props.strength < 4) return '#ecc94b';
-    return '#48bb78';
+  width: ${(props) => (props.strength / 4) * 100}%;
+  background: ${(props) => {
+    if (props.strength < 2) return "#f56565";
+    if (props.strength < 3) return "#ed8936";
+    if (props.strength < 4) return "#ecc94b";
+    return "#48bb78";
   }};
-  transition: width 0.3s ease, background 0.3s ease;
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
 `;
 
 const PasswordCriteria = styled.div`
@@ -184,12 +187,12 @@ const CriteriaItem = styled.div<{ met?: boolean }>`
   align-items: center;
   gap: 6px;
   margin: 4px 0;
-  color: ${props => (props.met ? '#48bb78' : '#718096')};
+  color: ${(props) => (props.met ? "#48bb78" : "#718096")};
 `;
 
 const CriteriaIcon = styled.span<{ met?: boolean }>`
   font-size: 14px;
-  color: ${props => (props.met ? '#48bb78' : '#cbd5e0')};
+  color: ${(props) => (props.met ? "#48bb78" : "#cbd5e0")};
 `;
 
 const CheckboxLabel = styled.label`
@@ -250,7 +253,7 @@ const Divider = styled.div`
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     flex: 1;
     height: 1px;
     background: #e2e8f0;
@@ -359,22 +362,22 @@ interface PasswordStrength {
 
 function calculatePasswordStrength(password: string): PasswordStrength {
   let score = 0;
-  
+
   if (password.length >= 8) score++;
   if (password.length >= 12) score++;
   if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
-  
-  return { score, feedback: '' };
+
+  return { score, feedback: "" };
 }
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { register, isLoading, error } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -398,32 +401,32 @@ export function RegisterPage() {
 
     // Validation
     if (!email) {
-      setLocalError('Please enter an email address');
+      setLocalError("Please enter an email address");
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setLocalError('Please enter a valid email address');
+      setLocalError("Please enter a valid email address");
       return;
     }
 
     if (password.length < 8) {
-      setLocalError('Password must be at least 8 characters long');
+      setLocalError("Password must be at least 8 characters long");
       return;
     }
 
     if (passwordStrength.score < 2) {
-      setLocalError('Password is too weak. Please use a stronger password');
+      setLocalError("Password is too weak. Please use a stronger password");
       return;
     }
 
     if (password !== confirmPassword) {
-      setLocalError('Passwords do not match');
+      setLocalError("Passwords do not match");
       return;
     }
 
     if (!agreeTerms) {
-      setLocalError('Please agree to the terms and conditions');
+      setLocalError("Please agree to the terms and conditions");
       return;
     }
 
@@ -431,13 +434,13 @@ export function RegisterPage() {
       await register(email, password);
       setSuccess(true);
       // Redirect to the page the user was trying to visit, or to home
-      const from = (location.state as any)?.from?.pathname || '/';
+      const from = (location.state as any)?.from?.pathname || "/";
       setTimeout(() => navigate(from), 1500);
     } catch (err) {
       setLocalError(
         err instanceof Error
           ? err.message
-          : 'Registration failed. Please try again.'
+          : "Registration failed. Please try again."
       );
     }
   };
@@ -448,8 +451,14 @@ export function RegisterPage() {
         <Title>Create Account</Title>
         <Subtitle>Join us to find your perfect property</Subtitle>
 
-        {(error || localError) && <ErrorMessage>{error || localError}</ErrorMessage>}
-        {success && <SuccessMessage>Account created successfully! Redirecting...</SuccessMessage>}
+        {(error || localError) && (
+          <ErrorMessage>{error || localError}</ErrorMessage>
+        )}
+        {success && (
+          <SuccessMessage>
+            Account created successfully! Redirecting...
+          </SuccessMessage>
+        )}
 
         <form onSubmit={handleSubmit}>
           <FormGroup>
@@ -475,7 +484,7 @@ export function RegisterPage() {
                 <FiLock />
               </InputIcon>
               <Input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -503,14 +512,10 @@ export function RegisterPage() {
                     At least 8 characters
                   </CriteriaItem>
                   <CriteriaItem
-                    met={
-                      /[a-z]/.test(password) && /[A-Z]/.test(password)
-                    }
+                    met={/[a-z]/.test(password) && /[A-Z]/.test(password)}
                   >
                     <CriteriaIcon
-                      met={
-                        /[a-z]/.test(password) && /[A-Z]/.test(password)
-                      }
+                      met={/[a-z]/.test(password) && /[A-Z]/.test(password)}
                     >
                       {/[a-z]/.test(password) && /[A-Z]/.test(password) ? (
                         <FiCheck />
@@ -538,7 +543,7 @@ export function RegisterPage() {
                 <FiLock />
               </InputIcon>
               <Input
-                type={showConfirm ? 'text' : 'password'}
+                type={showConfirm ? "text" : "password"}
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -553,12 +558,16 @@ export function RegisterPage() {
               </TogglePassword>
             </InputWrapper>
             {confirmPassword && !passwordsMatch && (
-              <div style={{ color: '#c53030', fontSize: '12px', marginTop: '6px' }}>
+              <div
+                style={{ color: "#c53030", fontSize: "12px", marginTop: "6px" }}
+              >
                 Passwords do not match
               </div>
             )}
             {confirmPassword && passwordsMatch && (
-              <div style={{ color: '#22543d', fontSize: '12px', marginTop: '6px' }}>
+              <div
+                style={{ color: "#22543d", fontSize: "12px", marginTop: "6px" }}
+              >
                 Passwords match ✓
               </div>
             )}
@@ -577,7 +586,7 @@ export function RegisterPage() {
           </FormGroup>
 
           <SubmitButton type="submit" disabled={isLoading || !isFormValid}>
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {isLoading ? "Creating Account..." : "Create Account"}
           </SubmitButton>
         </form>
 
@@ -596,7 +605,8 @@ export function RegisterPage() {
         </OAuthContainer>
 
         <LoginLink>
-          Already have an account? <a onClick={() => navigate('/login')}>Sign in</a>
+          Already have an account?{" "}
+          <a onClick={() => navigate("/login")}>Sign in</a>
         </LoginLink>
       </Card>
     </PageContainer>

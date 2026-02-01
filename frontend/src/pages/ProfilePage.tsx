@@ -1,17 +1,18 @@
-import styled from 'styled-components';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { FiArrowLeft, FiSave, FiTrash2 } from 'react-icons/fi';
-import { api } from '../api/client';
-import { useToast } from '../components/hooks/useToast';
+import styled from "styled-components";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { FiArrowLeft, FiSave, FiTrash2 } from "react-icons/fi";
+import { api } from "../api/client";
+import { useToast } from "../components/hooks/useToast";
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
+  box-sizing: border-box;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 40px 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 `;
 
 const Container = styled.div`
@@ -115,7 +116,7 @@ const Input = styled.input`
   font-size: 15px;
   transition: all 0.3s ease;
   background: #f7fafc;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
   &:focus {
     outline: none;
@@ -142,7 +143,7 @@ const Textarea = styled.textarea`
   font-size: 15px;
   transition: all 0.3s ease;
   background: #f7fafc;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   resize: vertical;
   min-height: 100px;
 
@@ -305,12 +306,12 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const [bio, setBio] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [minBedrooms, setMinBedrooms] = useState('');
-  const [maxBedrooms, setMaxBedrooms] = useState('');
-  const [locations, setLocations] = useState('');
+  const [bio, setBio] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [minBedrooms, setMinBedrooms] = useState("");
+  const [maxBedrooms, setMaxBedrooms] = useState("");
+  const [locations, setLocations] = useState("");
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
 
@@ -325,22 +326,23 @@ export function ProfilePage() {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await api.get('/users/profile');
+
+      const response = await api.get("/users/profile");
       const profile: UserProfile = response;
 
-      setBio(profile.bio || '');
-      setMinPrice(profile.preferences?.minPrice?.toString() || '');
-      setMaxPrice(profile.preferences?.maxPrice?.toString() || '');
-      setMinBedrooms(profile.preferences?.minBedrooms?.toString() || '');
-      setMaxBedrooms(profile.preferences?.maxBedrooms?.toString() || '');
-      setLocations((profile.preferences?.locations || []).join(', '));
+      setBio(profile.bio || "");
+      setMinPrice(profile.preferences?.minPrice?.toString() || "");
+      setMaxPrice(profile.preferences?.maxPrice?.toString() || "");
+      setMinBedrooms(profile.preferences?.minBedrooms?.toString() || "");
+      setMaxBedrooms(profile.preferences?.maxBedrooms?.toString() || "");
+      setLocations((profile.preferences?.locations || []).join(", "));
       setEmailUpdates(profile.notifications?.emailUpdates ?? true);
       setPushNotifications(profile.notifications?.pushNotifications ?? true);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to load profile';
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to load profile";
       setError(errorMsg);
-      showToast(errorMsg, 'error');
+      showToast(errorMsg, "error");
     } finally {
       setLoading(false);
     }
@@ -362,9 +364,9 @@ export function ProfilePage() {
           minBedrooms: minBedrooms ? parseInt(minBedrooms) : undefined,
           maxBedrooms: maxBedrooms ? parseInt(maxBedrooms) : undefined,
           locations: locations
-            .split(',')
-            .map(l => l.trim())
-            .filter(l => l),
+            .split(",")
+            .map((l) => l.trim())
+            .filter((l) => l),
         },
         notifications: {
           emailUpdates,
@@ -372,15 +374,16 @@ export function ProfilePage() {
         },
       };
 
-      await api.put('/users/profile', profileData);
+      await api.put("/users/profile", profileData);
       setSuccess(true);
-      showToast('Profile updated successfully!', 'success');
+      showToast("Profile updated successfully!", "success");
 
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to update profile';
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to update profile";
       setError(errorMsg);
-      showToast(errorMsg, 'error');
+      showToast(errorMsg, "error");
     } finally {
       setSaving(false);
     }
@@ -390,7 +393,7 @@ export function ProfilePage() {
     if (!user) return;
 
     const confirmed = window.confirm(
-      'Are you sure you want to delete your account? This action cannot be undone.'
+      "Are you sure you want to delete your account? This action cannot be undone."
     );
 
     if (!confirmed) return;
@@ -399,14 +402,15 @@ export function ProfilePage() {
       setSaving(true);
       setError(null);
 
-      await api.delete('/users/profile');
-      showToast('Account deleted successfully', 'success');
+      await api.delete("/users/profile");
+      showToast("Account deleted successfully", "success");
 
-      setTimeout(() => navigate('/login'), 1500);
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to delete account';
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to delete account";
       setError(errorMsg);
-      showToast(errorMsg, 'error');
+      showToast(errorMsg, "error");
       setSaving(false);
     }
   };
@@ -430,7 +434,7 @@ export function ProfilePage() {
       <Container>
         <Card>
           <Header>
-            <BackButton onClick={() => navigate('/')}>
+            <BackButton onClick={() => navigate("/")}>
               <FiArrowLeft />
             </BackButton>
             <Title>Profile Settings</Title>
@@ -438,7 +442,9 @@ export function ProfilePage() {
           </Header>
 
           {error && <ErrorMessage>{error}</ErrorMessage>}
-          {success && <SuccessMessage>Profile updated successfully!</SuccessMessage>}
+          {success && (
+            <SuccessMessage>Profile updated successfully!</SuccessMessage>
+          )}
 
           {/* Bio Section */}
           <Section>
@@ -460,7 +466,13 @@ export function ProfilePage() {
 
             <FormGroup>
               <Label>Price Range</Label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
                 <div>
                   <Input
                     type="number"
@@ -484,7 +496,13 @@ export function ProfilePage() {
 
             <FormGroup>
               <Label>Bedrooms</Label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
                 <div>
                   <Input
                     type="number"
@@ -547,7 +565,7 @@ export function ProfilePage() {
           <ButtonGroup>
             <SaveButton onClick={handleSaveProfile} disabled={saving}>
               <FiSave />
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? "Saving..." : "Save Changes"}
             </SaveButton>
             <DeleteButton onClick={handleDeleteAccount} disabled={saving}>
               <FiTrash2 />

@@ -1,15 +1,16 @@
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 const PageContainer = styled.div`
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  margin: auto;
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 `;
 
 const Header = styled.div`
@@ -75,13 +76,17 @@ const Button = styled.button<{ danger?: boolean }>`
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background: ${props => props.danger ? '#f56565' : '#667eea'};
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  background: ${(props) => (props.danger ? "#f56565" : "#667eea")};
   color: white;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px ${props => props.danger ? 'rgba(245, 101, 101, 0.4)' : 'rgba(102, 126, 234, 0.4)'};
+    box-shadow: 0 5px 15px
+      ${(props) =>
+        props.danger ? "rgba(245, 101, 101, 0.4)" : "rgba(102, 126, 234, 0.4)"};
   }
 `;
 
@@ -91,7 +96,7 @@ export function SettingsPage() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -100,7 +105,7 @@ export function SettingsPage() {
         <Title>Settings</Title>
         <Subtitle>Manage your account preferences</Subtitle>
       </Header>
-      
+
       <SettingsContainer>
         <SettingGroup>
           <SettingLabel>Theme</SettingLabel>
@@ -131,7 +136,7 @@ export function SettingsPage() {
         </SettingGroup>
 
         <ButtonGroup>
-          <Button onClick={() => navigate('/')}>Back to Home</Button>
+          <Button onClick={() => navigate("/")}>Back to Home</Button>
           <Button danger onClick={handleLogout}>
             Logout
           </Button>
