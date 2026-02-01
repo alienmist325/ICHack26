@@ -2,7 +2,6 @@
 
 import logging
 from typing import Optional
-import os
 
 from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings
