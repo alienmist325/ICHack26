@@ -1,9 +1,7 @@
 import "./App.css";
 import styled from "styled-components";
-import { HeaderContainer } from "./components/layout/HeaderContainer";
-import { FooterContainer } from "./components/layout/FooterContainer";
-import { HouseSearch } from "./components/screens/HouseSearch";
-// import { ExampleScreen } from "./components/screens/ExampleScreen";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import {
   FilterContext,
   useSetupFilter,
@@ -17,12 +15,12 @@ import {
   useSetupToast,
 } from "./components/hooks/useToast";
 import { ToastList } from "./components/ui/Toast";
-
-import { GiMushroomHouse } from "react-icons/gi";
-import { NavigationPane } from "./components/layout/NavigationPane";
-import { useState } from "react";
-import { rightMoveBlue } from "./constants";
-import { Button } from "./components/layout/Button";
+import { AuthContext, useSetupAuth } from "./hooks/useAuth";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { HouseSearchLayout } from "./pages/HouseSearchLayout";
+import { ProfilePage } from "./pages/ProfilePage";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -34,65 +32,62 @@ const AppContainer = styled.div`
   left: 0;
 `;
 
-const SidebarButton = styled(Button)`
-  background-color: ${rightMoveBlue};
-`;
-
-const TopRightCorner = styled.div`
-  position: absolute;
-  right: 0;
-  top: 0;
-  margin: 0.75rem;
-`;
-
-const CenteredContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-`;
-
 function App() {
   const filter = useSetupFilter();
   const globalData = useSetupGlobalData();
   const toast = useSetupToast();
+  const auth = useSetupAuth();
 
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
-
-  // Set global toast context for useToast hook
-  if (typeof window !== 'undefined') {
-    window.__toastContext = toast;
-  }
+  // Set global contexts for hooks
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.__toastContext = toast;
+      window.__authContext = auth;
+    }
+  }, [toast, auth]);
 
   return (
-    <GlobalDataContext.Provider value={globalData}>
-      <FilterContext.Provider value={filter}>
-        <ToastContext.Provider value={toast}>
-          <AppContainer>
-            <HeaderContainer>
-              <>
-                <CenteredContainer>
-                  <GiMushroomHouse />
-                  Not Rightmove
-                </CenteredContainer>
+    <AuthContext.Provider value={auth}>
+      <GlobalDataContext.Provider value={globalData}>
+        <FilterContext.Provider value={filter}>
+          <ToastContext.Provider value={toast}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
 
-                <TopRightCorner>
-                  <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
-                </TopRightCorner>
-              </>
-            </HeaderContainer>
-            <NavigationPane
-              leftSidebarOpen={leftSidebarOpen}
-              toggleLeftSidebar={toggleLeftSidebar}
-            ></NavigationPane>
-            <HouseSearch></HouseSearch>
-            <FooterContainer> Made for IC Hack 2026 </FooterContainer>
-            <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
-          </AppContainer>
-        </ToastContext.Provider>
-      </FilterContext.Provider>
-    </GlobalDataContext.Provider>
+              {/* Protected Routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <AppContainer>
+                      <HouseSearchLayout />
+                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                    </AppContainer>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <>
+                      <ProfilePage />
+                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                    </>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Catch-all redirect */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ToastContext.Provider>
+        </FilterContext.Provider>
+      </GlobalDataContext.Provider>
+    </AuthContext.Provider>
   );
 }
 

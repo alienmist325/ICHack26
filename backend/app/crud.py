@@ -386,7 +386,7 @@ def calculate_property_score(
         # Exponential decay: weight = 0.5 ^ (age_days / decay_days)
         weight = math.pow(0.5, age_days / decay_days)
 
-        if rating.vote_type == VoteType.UPVOTE:
+        if rating.vote_type == VoteType.STAR or rating.vote_type == "star":
             upvotes += 1
             weighted_score += weight
         else:

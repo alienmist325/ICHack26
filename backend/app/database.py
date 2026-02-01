@@ -110,14 +110,170 @@ def init_db() -> None:
             )
         """)
 
-        # Ratings table - tracks upvotes/downvotes for listings
+        # Users table - stores user account information
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                hashed_password TEXT,
+                is_active BOOLEAN DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # User profiles table - extended user information
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER UNIQUE NOT NULL,
+                bio TEXT,
+                dream_property_description TEXT,
+                preferred_price_min INTEGER,
+                preferred_price_max INTEGER,
+                preferred_bedrooms_min INTEGER,
+                preferred_property_types TEXT,  -- JSON array
+                preferred_locations TEXT,  -- JSON array (outcodes)
+                notification_viewing_reminder_days INTEGER DEFAULT 3,
+                notification_email_enabled BOOLEAN DEFAULT 1,
+                notification_in_app_enabled BOOLEAN DEFAULT 1,
+                notification_feed_changes_enabled BOOLEAN DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+
+        # OAuth providers table - tracks OAuth integrations
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS oauth_providers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                provider TEXT NOT NULL,  -- 'google', 'apple', 'microsoft', 'facebook'
+                provider_user_id TEXT NOT NULL,
+                provider_email TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                UNIQUE(provider, provider_user_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Refresh tokens table - for JWT token refresh
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS refresh_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token_hash TEXT UNIQUE NOT NULL,
+                expires_at TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Property bookmarks table - tracks starred/bookmarked properties
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS property_bookmarks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                property_id INTEGER NOT NULL,
+                is_starred BOOLEAN DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                UNIQUE(user_id, property_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Property status table - tracks user's journey with each property
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS property_status (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                property_id INTEGER NOT NULL,
+                status TEXT DEFAULT 'interested',  -- 'interested', 'viewing', 'offer', 'accepted'
+                status_updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                UNIQUE(user_id, property_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Property status comments table - notes on properties
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS property_comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                property_id INTEGER NOT NULL,
+                comment TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Viewing events table - tracks scheduled property viewings
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS viewing_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                property_id INTEGER NOT NULL,
+                viewing_date TEXT NOT NULL,
+                viewing_time TEXT,
+                agent_contact TEXT,
+                notes TEXT,
+                reminder_sent BOOLEAN DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Shared feeds table - wishlists shared between multiple users
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS shared_feeds (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                invite_token TEXT UNIQUE NOT NULL,
+                max_members INTEGER DEFAULT 8,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Shared feed members table - tracks users in a shared feed
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS shared_feed_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                shared_feed_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                
+                UNIQUE(shared_feed_id, user_id),
+                FOREIGN KEY (shared_feed_id) REFERENCES shared_feeds(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Ratings table - tracks stars/marked unavailable for listings (now with user tracking)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ratings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
                 property_id INTEGER NOT NULL,
-                vote_type TEXT NOT NULL CHECK(vote_type IN ('upvote', 'downvote')),
+                vote_type TEXT NOT NULL CHECK(vote_type IN ('star', 'gone_from_market')),
                 voted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
                 FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
             )
         """)
@@ -156,6 +312,81 @@ def init_db() -> None:
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_outcode 
             ON properties(outcode)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_users_email 
+            ON users(email)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_property_bookmarks_user_id 
+            ON property_bookmarks(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_property_bookmarks_property_id 
+            ON property_bookmarks(property_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_property_status_user_id 
+            ON property_status(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_property_status_property_id 
+            ON property_status(property_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_property_comments_user_id 
+            ON property_comments(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_property_comments_property_id 
+            ON property_comments(property_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_viewing_events_user_id 
+            ON viewing_events(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_viewing_events_viewing_date 
+            ON viewing_events(viewing_date)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_oauth_providers_user_id 
+            ON oauth_providers(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_oauth_providers_provider_id 
+            ON oauth_providers(provider, provider_user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id 
+            ON refresh_tokens(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_shared_feed_members_user_id 
+            ON shared_feed_members(user_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_shared_feed_members_shared_feed_id 
+            ON shared_feed_members(shared_feed_id)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_ratings_user_id 
+            ON ratings(user_id)
         """)
 
         cursor.execute("""

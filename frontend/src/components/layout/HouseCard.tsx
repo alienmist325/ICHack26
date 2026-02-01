@@ -9,9 +9,10 @@ import { IoBed } from "react-icons/io5";
 import { GiHouse } from "react-icons/gi";
 import { FaMoneyBillAlt } from "react-icons/fa";
 import { FaToiletPaper } from "react-icons/fa6";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiStar, FiMessageCircle } from "react-icons/fi";
 import { AiOutlineLike, AiOutlineDislike, AiFillLike, AiFillDislike } from "react-icons/ai";
 import { FiHome, FiBox } from "react-icons/fi";
+import { BsStarFill } from "react-icons/bs";
 
 export interface HouseCardProps {
   house: House;
@@ -178,6 +179,104 @@ const ScoreDisplay = styled.span`
   margin-left: 0.5rem;
 `;
 
+const ActionBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  flex-wrap: wrap;
+`;
+
+const StarButton = styled.button<{ isBookmarked: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid ${(props) => (props.isBookmarked ? "#FFD700" : "#ccc")};
+  background: ${(props) => (props.isBookmarked ? "#fffbf0" : "white")};
+  color: ${(props) => (props.isBookmarked ? "#FFD700" : "#666")};
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #FFD700;
+    background: #fffbf0;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const StatusSelect = styled.select`
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  background: white;
+  color: #666;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${rightMoveBlue};
+  }
+
+  &:focus {
+    outline: none;
+    border-color: ${rightMoveBlue};
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const CommentsSection = styled.div`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+`;
+
+const CommentsButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #ccc;
+  background: white;
+  color: #666;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${rightMoveBlue};
+    color: ${rightMoveBlue};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const CommentCount = styled.span`
+  font-size: 0.8rem;
+  color: #999;
+  margin-left: 0.3rem;
+`;
+
+type PropertyStatus = "interested" | "viewing" | "offer" | "accepted" | null;
+
 export function HouseCard(props: HouseCardProps) {
   const { house } = props;
   const [isHovering, setIsHovering] = useState(false);
@@ -185,6 +284,11 @@ export function HouseCard(props: HouseCardProps) {
   const [autoPlayInterval, setAutoPlayInterval] = useState<NodeJS.Timeout | null>(null);
   const [userVote, setUserVote] = useState<"upvote" | "downvote" | null>(null);
   const [isVoting, setIsVoting] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [propertyStatus, setPropertyStatus] = useState<PropertyStatus>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
 
   const images = house.images && house.images.length > 0 ? house.images : [];
   const hasImages = images.length > 0;
@@ -235,16 +339,63 @@ export function HouseCard(props: HouseCardProps) {
       
       // Show toast notification
       if (typeof window !== 'undefined' && window.__toastContext) {
-        const message = voteType === "upvote" ? "👍 You upvoted this property!" : "👎 You downvoted this property!";
+        const message = voteType === "upvote" ? "⭐ Starred this property!" : "❌ Marked as gone from market!";
         window.__toastContext.addToast(message, "success", 2000);
       }
     } catch (err) {
       console.error("Failed to vote:", err);
       if (typeof window !== 'undefined' && window.__toastContext) {
-        window.__toastContext.addToast("Failed to record vote", "error", 3000);
+        window.__toastContext.addToast("Failed to record rating", "error", 3000);
       }
     } finally {
       setIsVoting(false);
+    }
+  };
+
+  const handleToggleBookmark = async () => {
+    setIsVoting(true);
+    try {
+      if (isBookmarked) {
+        await api.unstarProperty(house.id);
+        setIsBookmarked(false);
+        if (typeof window !== 'undefined' && window.__toastContext) {
+          window.__toastContext.addToast("Removed from bookmarks", "success", 2000);
+        }
+      } else {
+        await api.starProperty(house.id);
+        setIsBookmarked(true);
+        if (typeof window !== 'undefined' && window.__toastContext) {
+          window.__toastContext.addToast("Added to bookmarks", "success", 2000);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to bookmark:", err);
+      if (typeof window !== 'undefined' && window.__toastContext) {
+        window.__toastContext.addToast("Failed to update bookmark", "error", 3000);
+      }
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  const handleStatusChange = async (status: PropertyStatus) => {
+    setIsUpdatingStatus(true);
+    try {
+      if (status) {
+        await api.setPropertyStatus(house.id, status);
+      }
+      setPropertyStatus(status);
+      if (typeof window !== 'undefined' && window.__toastContext) {
+        const statusText = status ? `Status updated to "${status}"` : "Status cleared";
+        window.__toastContext.addToast(statusText, "success", 2000);
+      }
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      if (typeof window !== 'undefined' && window.__toastContext) {
+        window.__toastContext.addToast("Failed to update status", "error", 3000);
+      }
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -318,34 +469,76 @@ export function HouseCard(props: HouseCardProps) {
           </Features>
         )}
 
-        <RatingContainer>
-          <RatingButton
-            isActive={userVote === "upvote"}
-            onClick={() => handleVote("upvote")}
-            disabled={isVoting}
-            title="Upvote this property"
-          >
-            {userVote === "upvote" ? <AiFillLike size={16} /> : <AiOutlineLike size={16} />}
-            <span>Upvote</span>
-          </RatingButton>
+         <RatingContainer>
+           <RatingButton
+             isActive={userVote === "upvote"}
+             onClick={() => handleVote("upvote")}
+             disabled={isVoting}
+             title="Star this property"
+           >
+             {userVote === "upvote" ? <AiFillLike size={16} /> : <AiOutlineLike size={16} />}
+             <span>Star</span>
+           </RatingButton>
 
-          <RatingButton
-            isActive={userVote === "downvote"}
-            onClick={() => handleVote("downvote")}
-            disabled={isVoting}
-            title="Downvote this property"
-          >
-            {userVote === "downvote" ? <AiFillDislike size={16} /> : <AiOutlineDislike size={16} />}
-            <span>Downvote</span>
-          </RatingButton>
+           <RatingButton
+             isActive={userVote === "downvote"}
+             onClick={() => handleVote("downvote")}
+             disabled={isVoting}
+             title="Mark as gone from market"
+           >
+             {userVote === "downvote" ? <AiFillDislike size={16} /> : <AiOutlineDislike size={16} />}
+             <span>Gone</span>
+           </RatingButton>
 
-          {house.score !== undefined && (
-            <ScoreDisplay>
-              Score: {house.score.toFixed(1)}
-            </ScoreDisplay>
-          )}
-        </RatingContainer>
-      </ContentContainer>
-    </CardContainer>
-  );
-}
+           {house.score !== undefined && (
+             <ScoreDisplay>
+               Score: {house.score.toFixed(1)}
+             </ScoreDisplay>
+           )}
+         </RatingContainer>
+
+         <ActionBar>
+           <StarButton
+             isBookmarked={isBookmarked}
+             onClick={handleToggleBookmark}
+             disabled={isVoting}
+             title="Add to bookmarks"
+           >
+             {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
+             <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+           </StarButton>
+
+           <StatusSelect
+             value={propertyStatus || ""}
+             onChange={(e) => handleStatusChange((e.target.value as PropertyStatus) || null)}
+             disabled={isUpdatingStatus}
+             title="Track your property status"
+           >
+             <option value="">Set Status...</option>
+             <option value="interested">Interested</option>
+             <option value="viewing">Viewing Scheduled</option>
+             <option value="offer">Made Offer</option>
+             <option value="accepted">Offer Accepted</option>
+           </StatusSelect>
+
+           <CommentsButton
+             onClick={() => setShowComments(!showComments)}
+             title="View and add comments"
+           >
+             <FiMessageCircle size={16} />
+             <span>Comments</span>
+             <CommentCount>({commentCount})</CommentCount>
+           </CommentsButton>
+         </ActionBar>
+
+         {showComments && (
+           <CommentsSection>
+             <p style={{ color: "#999", fontSize: "0.9rem" }}>
+               Comments feature coming soon! This property has {commentCount} comments.
+             </p>
+           </CommentsSection>
+         )}
+       </ContentContainer>
+     </CardContainer>
+   );
+ }

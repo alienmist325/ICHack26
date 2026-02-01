@@ -6,8 +6,15 @@ from pydantic import BaseModel, ConfigDict
 
 
 class VoteType(str, Enum):
-    UPVOTE = "upvote"
-    DOWNVOTE = "downvote"
+    STAR = "star"
+    GONE_FROM_MARKET = "gone_from_market"
+
+
+class PropertyStatus(str, Enum):
+    INTERESTED = "interested"
+    VIEWING = "viewing"
+    OFFER = "offer"
+    ACCEPTED = "accepted"
 
 
 class PropertyBase(BaseModel):
@@ -183,3 +190,187 @@ class PropertyFilters(BaseModel):
     outcode: Optional[str] = None
     removed: bool = False  # By default, don't show removed properties
     min_score: Optional[float] = None  # Minimum rating score
+
+
+# ============================================================================
+# User Authentication Schemas
+# ============================================================================
+
+
+class UserRegister(BaseModel):
+    """Schema for user registration."""
+
+    email: str
+    password: str
+
+
+class UserLogin(BaseModel):
+    """Schema for user login."""
+
+    email: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    """Schema for token response."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+class UserBase(BaseModel):
+    """Base schema for user information."""
+
+    email: str
+    is_active: bool = True
+
+
+class User(UserBase):
+    """Schema for reading a user from the database."""
+
+    id: int
+    created_at: str
+    updated_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfile(BaseModel):
+    """Schema for user profile information."""
+
+    bio: Optional[str] = None
+    dream_property_description: Optional[str] = None
+    preferred_price_min: Optional[int] = None
+    preferred_price_max: Optional[int] = None
+    preferred_bedrooms_min: Optional[int] = None
+    preferred_property_types: Optional[List[str]] = None
+    preferred_locations: Optional[List[str]] = None
+
+
+class UserProfileResponse(UserProfile):
+    """Schema for reading user profile from the database."""
+
+    user_id: int
+    notification_viewing_reminder_days: int
+    notification_email_enabled: bool
+    notification_in_app_enabled: bool
+    notification_feed_changes_enabled: bool
+    created_at: str
+    updated_at: str
+
+
+class NotificationSettings(BaseModel):
+    """Schema for user notification settings."""
+
+    notification_viewing_reminder_days: int = 3
+    notification_email_enabled: bool = True
+    notification_in_app_enabled: bool = True
+    notification_feed_changes_enabled: bool = True
+
+
+# ============================================================================
+# Property Bookmark & Status Schemas
+# ============================================================================
+
+
+class PropertyBookmark(BaseModel):
+    """Schema for property bookmarks."""
+
+    property_id: int
+    is_starred: bool = True
+
+
+class PropertyStatusUpdate(BaseModel):
+    """Schema for updating property status."""
+
+    status: PropertyStatus
+    comment: Optional[str] = None
+
+
+class PropertyStatusResponse(BaseModel):
+    """Schema for reading property status from the database."""
+
+    user_id: int
+    property_id: int
+    status: str
+    status_updated_at: str
+    created_at: str
+
+
+class PropertyComment(BaseModel):
+    """Schema for property comments."""
+
+    comment: str
+
+
+class PropertyCommentResponse(PropertyComment):
+    """Schema for reading property comments from the database."""
+
+    id: int
+    user_id: int
+    property_id: int
+    created_at: str
+    updated_at: str
+
+
+# ============================================================================
+# Viewing Event Schemas
+# ============================================================================
+
+
+class ViewingEventCreate(BaseModel):
+    """Schema for creating viewing events."""
+
+    property_id: int
+    viewing_date: str  # ISO format: YYYY-MM-DD
+    viewing_time: Optional[str] = None  # HH:MM format
+    agent_contact: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ViewingEventResponse(ViewingEventCreate):
+    """Schema for reading viewing events from the database."""
+
+    id: int
+    user_id: int
+    reminder_sent: bool
+    created_at: str
+    updated_at: str
+
+
+# ============================================================================
+# Shared Feed Schemas
+# ============================================================================
+
+
+class SharedFeedCreate(BaseModel):
+    """Schema for creating a shared feed."""
+
+    name: str
+
+
+class SharedFeedMember(BaseModel):
+    """Schema for shared feed members."""
+
+    user_id: int
+    joined_at: str
+
+
+class SharedFeedResponse(BaseModel):
+    """Schema for reading shared feeds from the database."""
+
+    id: int
+    name: str
+    invite_token: str
+    max_members: int
+    created_at: str
+    updated_at: str
+
+
+class SharedFeedDetailResponse(SharedFeedResponse):
+    """Shared feed with member details."""
+
+    members: List[User] = []
+    member_count: int = 0
