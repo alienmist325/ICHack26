@@ -1,76 +1,105 @@
-# backend/app/database.py
+"""Pytest configuration and fixtures for backend tests."""
+
 import os
 import sqlite3
-from contextlib import contextmanager
+import tempfile
 from pathlib import Path
-from typing import Generator, Optional
+from unittest.mock import patch
 
-DATABASE_PATH = Path(__file__).parent.parent / "data" / "rightmove.db"
+import pytest
 
-# Global shared in-memory database connection for tests
-_test_db_connection: Optional[sqlite3.Connection] = None
+# Set TEST_MODE before importing database module
+os.environ["TEST_MODE"] = "true"
 
-
-def _is_test_mode() -> bool:
-    """Check if we're running in test mode."""
-    return os.environ.get("TEST_MODE", "false").lower() == "true"
-
-
-def get_db_connection() -> sqlite3.Connection:
-    """Create a database connection with row factory."""
-    if _is_test_mode():
-        # Use in-memory database for testing with thread safety
-        global _test_db_connection
-        if _test_db_connection is None:
-            _test_db_connection = sqlite3.connect(":memory:", check_same_thread=False)
-            _test_db_connection.row_factory = sqlite3.Row
-        return _test_db_connection
-
-    # Use persistent file database for production
-    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DATABASE_PATH))
-    conn.row_factory = sqlite3.Row
-    return conn
+from backend.app.database import (
+    DATABASE_PATH,
+    init_db,
+    reset_test_db,
+    get_db_connection,
+)
 
 
-@contextmanager
-def get_db() -> Generator[sqlite3.Connection, None, None]:
-    """Context manager for database connections."""
-    if _is_test_mode():
-        # In test mode, reuse the in-memory connection without closing
-        conn = get_db_connection()
-        try:
-            yield conn
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        # Don't close in-memory connection during tests, just commit
-    else:
-        # In production, create a new connection for each use
-        conn = get_db_connection()
-        try:
-            yield conn
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+# Module-level flag to track if we're in integration tests
+_integration_tests_completed = False
 
 
-def init_db() -> None:
-    """Initialize the database with all tables."""
-    with get_db() as conn:
+@pytest.fixture(scope="session", autouse=True)
+def enable_test_mode():
+    """Verify test mode is enabled for the entire test session."""
+    # TEST_MODE should already be set at module level
+    assert os.environ.get("TEST_MODE") == "true", (
+        "TEST_MODE should be set before imports"
+    )
+    yield
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_session_db():
+    """Initialize database for the session."""
+    # Initialize database once at session start
+    init_db()
+    yield
+    # Cleanup after all tests
+    reset_test_db()
+
+
+# Track if we've already initialized the session DB
+_db_initialized_for_test = False
+
+
+@pytest.fixture(autouse=True)
+def setup_test_db_fixture(request):
+    """
+    Ensure database is properly initialized for each test.
+
+    This fixture ensures the shared in-memory database is available
+    and has the correct schema for all tests. It also clears data
+    between tests to prevent test interdependence.
+    """
+    global _db_initialized_for_test
+
+    # Database is already initialized by setup_session_db at session scope
+    # Just verify it's still there; re-initialize if needed
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT count(*) FROM sqlite_master WHERE type='table'")
+        count = cursor.fetchone()[0]
+        if count == 0:
+            # Tables don't exist, reinitialize
+            init_db()
+        else:
+            # Tables exist, clear data from them (except for integration/db tests)
+            is_integration_test = "test_integration.py" in request.node.nodeid
+            is_routing_db_integration = (
+                "test_routing_db_integration.py" in request.node.nodeid
+            )
+            if not is_integration_test and not is_routing_db_integration:
+                # Clear all data from tables to avoid test interdependence
+                cursor.execute("DELETE FROM ratings")
+                cursor.execute("DELETE FROM verification_logs")
+                cursor.execute("DELETE FROM properties")
+                conn.commit()
+    except sqlite3.OperationalError:
+        # Database is in a bad state, reinitialize
+        reset_test_db()
+        init_db()
+
+    yield
+
+
+@pytest.fixture
+def temp_db_with_schema():
+    """Create a temporary test database with initialized schema."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        db_path = Path(tmpdir) / "test.db"
+
+        # Create and initialize the database with schema
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Check if tables already exist
-        cursor.execute("SELECT count(*) FROM sqlite_master WHERE type='table'")
-        if cursor.fetchone()[0] > 0:
-            # Tables already exist, skip initialization
-            return
-
-        # Properties table - stores all Rightmove listing data
+        # Create all required tables
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS properties (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -151,7 +180,6 @@ def init_db() -> None:
             )
         """)
 
-        # Ratings table - tracks upvotes/downvotes for listings
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ratings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -163,7 +191,6 @@ def init_db() -> None:
             )
         """)
 
-        # Verification logs table - audit trail for property verification calls
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS verification_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -182,7 +209,7 @@ def init_db() -> None:
             )
         """)
 
-        # Create indexes for common queries
+        # Create indexes
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_properties_rightmove_id 
             ON properties(rightmove_id)
@@ -194,38 +221,8 @@ def init_db() -> None:
         """)
 
         cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_properties_price 
-            ON properties(price)
-        """)
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_properties_bedrooms 
-            ON properties(bedrooms)
-        """)
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_properties_property_type 
-            ON properties(property_type)
-        """)
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_properties_removed 
-            ON properties(removed)
-        """)
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_properties_outcode 
-            ON properties(outcode)
-        """)
-
-        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_ratings_property_id 
             ON ratings(property_id)
-        """)
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_ratings_voted_at 
-            ON ratings(voted_at)
         """)
 
         cursor.execute("""
@@ -233,42 +230,7 @@ def init_db() -> None:
             ON verification_logs(property_id)
         """)
 
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_verification_logs_status 
-            ON verification_logs(verification_status)
-        """)
-
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_verification_logs_created_at 
-            ON verification_logs(created_at)
-        """)
-
-        # Create trigger to update updated_at timestamp
-        cursor.execute("""
-            CREATE TRIGGER IF NOT EXISTS update_properties_timestamp 
-            AFTER UPDATE ON properties
-            BEGIN
-                UPDATE properties 
-                SET updated_at = CURRENT_TIMESTAMP 
-                WHERE id = NEW.id;
-            END
-        """)
-
         conn.commit()
+        conn.close()
 
-
-def reset_test_db() -> None:
-    """Reset the in-memory test database. Only works in test mode."""
-    global _test_db_connection
-    if _test_db_connection is not None:
-        try:
-            _test_db_connection.close()
-        except Exception:
-            pass
-        _test_db_connection = None
-
-
-if __name__ == "__main__":
-    print("Initializing database...")
-    init_db()
-    print(f"Database initialized at {DATABASE_PATH}")
+        yield db_path

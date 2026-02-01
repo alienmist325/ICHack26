@@ -6,9 +6,9 @@ from typing import List, Optional
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import crud
-from app.database import init_db
-from app.schemas import (
+from backend.app import crud
+from backend.app.database import init_db
+from backend.app.schemas import (
     DistanceRequest,
     DistanceResponse,
     DistanceResult,
@@ -24,13 +24,21 @@ from app.schemas import (
     TravelTimeRequest,
     TravelTimeResponse,
     TravelTimeResult,
+    VerificationRequest,
+    VerificationStartResponse,
+    JobStatusResponse,
+    JobStatusEnum,
+    VerificationStatusEnum,
 )
 from backend.models.rightmove import RightmoveScraperInput
 from backend.scraper.scrape import scrape_rightmove
+from backend.config import settings
 from backend.services.routing_service import (
     RoutingService,
     properties_in_polygon,
 )
+from services.verification.service import PropertyVerificationService
+from services.verification.jobs import get_job_queue, init_job_queue
 
 logger = logging.getLogger(__name__)
 
@@ -63,15 +71,112 @@ def get_routing_service_dep() -> RoutingService:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize database and routing service
+    # Startup: Initialize database, routing service, and verification job queue
     global _routing_service
     init_db()
+
+    # Initialize routing service
     _routing_service = RoutingService()
     logger.info("Routing service initialized at app startup")
+
+    # Initialize verification service if credentials are configured
+    verification_service = None
+    job_queue = None
+    if settings.elevenlabs_api_key:
+        try:
+            verification_service = PropertyVerificationService(
+                settings.elevenlabs_api_key
+            )
+
+            # Initialize job queue
+            job_queue = await init_job_queue(
+                max_concurrent=settings.verification_max_concurrent_calls
+            )
+
+            # Start job processor
+            async def process_verification_jobs(job):
+                """Job processor for verification tasks."""
+                try:
+                    if (
+                        not settings.elevenlabs_agent_id
+                        or not settings.elevenlabs_phone_number
+                    ):
+                        raise ValueError(
+                            "ElevenLabs Agent ID and phone number not configured"
+                        )
+
+                    property_data = crud.get_property_for_verification(job.property_id)
+                    if not property_data:
+                        raise ValueError(
+                            f"Property {job.property_id} not found or has no agent phone"
+                        )
+
+                    # Perform verification
+                    result = await verification_service.verify_property(
+                        job=job,
+                        agent_id=settings.elevenlabs_agent_id,
+                        phone_number=settings.elevenlabs_phone_number,
+                        property_address=property_data["address"],
+                        agent_phone=property_data["agent_phone"],
+                        call_timeout=settings.verification_call_timeout,
+                    )
+
+                    # Store result in database
+                    crud.create_verification_log(
+                        property_id=job.property_id,
+                        agent_phone=property_data["agent_phone"],
+                        verification_status=result.verification_status.value,
+                        call_timestamp=result.created_at.isoformat()
+                        if result.created_at
+                        else None,
+                        call_duration_seconds=result.call_duration_seconds,
+                        agent_response=result.agent_response,
+                        confidence_score=result.confidence_score,
+                        notes=result.notes,
+                        error_message=result.error_message,
+                    )
+
+                    # Update property verification status
+                    crud.update_property_verification_status(
+                        job.property_id,
+                        result.verification_status.value,
+                        result.notes,
+                    )
+
+                    return result
+                except Exception as e:
+                    logger.error(f"Verification job {job.job_id} failed: {e}")
+
+                    # Mark as failed in database
+                    crud.update_property_verification_status(
+                        job.property_id,
+                        "failed",
+                        f"Verification failed: {str(e)}",
+                    )
+                    raise
+
+            # Start background worker
+            await job_queue.start(process_verification_jobs)
+            logger.info("Verification service initialized and job queue started")
+        except Exception as e:
+            logger.warning(f"Could not initialize verification service: {e}")
+    else:
+        logger.warning(
+            "ElevenLabs API key not configured - verification service disabled"
+        )
+
     yield
-    # Shutdown: Clean up
+
+    # Shutdown: Clean up routing service and job queue
     _routing_service = None
     logger.info("Routing service shutdown")
+
+    try:
+        if job_queue:
+            await job_queue.stop()
+            logger.info("Verification job queue stopped")
+    except Exception as e:
+        logger.warning(f"Error stopping job queue: {e}")
 
 
 app = FastAPI(
@@ -375,6 +480,127 @@ async def list_property_types():
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+# ============================================================================
+# Verification endpoints
+# ============================================================================
+
+
+@app.post(
+    "/api/verify/property/{property_id}",
+    response_model=VerificationStartResponse,
+    status_code=202,
+)
+async def start_property_verification(property_id: int):
+    """
+    Start property availability verification.
+
+    This endpoint queues a property for verification via ElevenLabs AI call
+    and returns a job ID for polling.
+
+    Returns 202 Accepted with job_id for polling verification status.
+    """
+    if not settings.elevenlabs_api_key:
+        raise HTTPException(
+            status_code=503, detail="Verification service not configured"
+        )
+
+    # Check if property exists and has agent phone
+    property_data = crud.get_property_for_verification(property_id)
+    if not property_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Property {property_id} not found or has no agent phone number",
+        )
+
+    try:
+        # Enqueue job
+        job_queue = await get_job_queue()
+        job = await job_queue.enqueue(property_id)
+
+        return VerificationStartResponse(
+            job_id=job.job_id,
+            property_id=property_id,
+            status=JobStatusEnum.QUEUED,
+            message=f"Verification job {job.job_id} queued for property {property_id}",
+            poll_url=f"/api/verify/job/{job.job_id}",
+        )
+    except Exception as e:
+        logger.error(f"Failed to queue verification: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to queue verification: {str(e)}"
+        )
+
+
+@app.get("/api/verify/job/{job_id}", response_model=JobStatusResponse)
+async def get_verification_job_status(job_id: str):
+    """
+    Get the status of a verification job.
+
+    Returns:
+    - 202 Accepted if job is still processing
+    - 200 OK if job is completed or failed
+    """
+    try:
+        job_queue = await get_job_queue()
+        job = await job_queue.get_job(job_id)
+
+        if not job:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+        # Build response
+        response = JobStatusResponse(
+            job_id=job.job_id,
+            status=JobStatusEnum(job.status.value),
+            created_at=job.created_at,
+            started_at=job.started_at,
+            completed_at=job.completed_at,
+            error=job.error,
+        )
+
+        # If completed, include verification result from database
+        if job.status.value == "completed":
+            from app.schemas import VerificationResultResponse
+            from datetime import datetime
+
+            verification_log = crud.get_verification_log(job.property_id)
+            if verification_log:
+                response.result = VerificationResultResponse(
+                    property_id=job.property_id,
+                    verification_status=VerificationStatusEnum(
+                        verification_log["verification_status"]
+                    ),
+                    confidence_score=verification_log["confidence_score"] or 0.0,
+                    call_transcript=verification_log.get("transcript"),
+                    call_duration_seconds=verification_log["call_duration_seconds"],
+                    agent_response=verification_log["agent_response"],
+                    notes=verification_log["notes"],
+                    error_message=verification_log["error_message"],
+                    created_at=datetime.fromisoformat(verification_log["created_at"])
+                    if verification_log["created_at"]
+                    else datetime.utcnow(),
+                )
+
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting job status: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting job status: {str(e)}"
+        )
+
+
+@app.get("/api/verify/stats")
+async def get_verification_statistics():
+    """Get verification statistics."""
+    try:
+        stats = crud.get_verification_statistics()
+        return stats
+    except Exception as e:
+        logger.error(f"Error getting verification stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================

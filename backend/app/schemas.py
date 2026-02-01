@@ -1,8 +1,9 @@
 # backend/app/schemas.py
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class VoteType(str, Enum):
@@ -265,3 +266,114 @@ class DistanceResponse(BaseModel):
     origin_lat: float
     origin_lon: float
     results: List[DistanceResult]
+
+
+# ============================================================================
+# Verification Schemas
+# ============================================================================
+
+
+class VerificationStatusEnum(str, Enum):
+    """Verification status enumeration."""
+
+    PENDING = "pending"
+    PROCESSING = "processing"
+    AVAILABLE = "available"
+    SOLD = "sold"
+    RENTED = "rented"
+    UNCLEAR = "unclear"
+    PENDING_REVIEW = "pending_review"
+    FAILED = "failed"
+
+
+class JobStatusEnum(str, Enum):
+    """Job status enumeration."""
+
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class VerificationRequest(BaseModel):
+    """Request to verify a property."""
+
+    model_config = ConfigDict(json_schema_extra={"example": {"property_id": 123}})
+
+    property_id: int = Field(..., description="Property ID to verify")
+
+
+class VerificationResultResponse(BaseModel):
+    """Result of property verification."""
+
+    property_id: int
+    verification_status: VerificationStatusEnum
+    confidence_score: float = Field(..., ge=0.0, le=1.0)
+    call_transcript: Optional[str] = None
+    call_duration_seconds: Optional[int] = None
+    agent_response: Optional[str] = None
+    notes: Optional[str] = None
+    error_message: Optional[str] = None
+    created_at: datetime
+
+
+class JobStatusResponse(BaseModel):
+    """Response for job status query."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "job_id": "550e8400-e29b-41d4-a716-446655440000",
+                "status": "completed",
+                "created_at": "2025-02-01T12:00:00Z",
+                "started_at": "2025-02-01T12:00:05Z",
+                "completed_at": "2025-02-01T12:02:30Z",
+                "result": {
+                    "property_id": 123,
+                    "verification_status": "available",
+                    "confidence_score": 0.95,
+                    "call_duration_seconds": 145,
+                    "created_at": "2025-02-01T12:02:30Z",
+                },
+            }
+        }
+    )
+
+    job_id: str
+    status: JobStatusEnum
+    created_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    result: Optional[VerificationResultResponse] = None
+    error: Optional[str] = None
+
+
+class VerificationStartResponse(BaseModel):
+    """Response when verification job is started."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "job_id": "550e8400-e29b-41d4-a716-446655440000",
+                "property_id": 123,
+                "status": "queued",
+                "message": "Verification job queued successfully",
+                "poll_url": "/api/verify/job/550e8400-e29b-41d4-a716-446655440000",
+            }
+        }
+    )
+
+    job_id: str
+    property_id: int
+    status: JobStatusEnum
+    message: str
+    poll_url: str
+
+
+class PropertyVerificationStatus(BaseModel):
+    """Property verification status in response."""
+
+    property_id: int
+    verification_status: VerificationStatusEnum
+    last_verified_at: Optional[datetime] = None
+    verification_notes: Optional[str] = None
