@@ -10,10 +10,9 @@ uv sync
 ```
 3. Initialise the database:
 ```bash
-cd backend
 uv run -m app.database
 ```
 4. Run the API server:
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn -m app.main:app --reload --host 0.0.0.0 --port 8000
 ```
