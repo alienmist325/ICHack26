@@ -385,7 +385,7 @@ class TestICalendarExport:
         from app.crud import create_property, create_viewing_event
 
         prop = create_property(mock_property_data)
-        viewing = create_viewing_event(
+        create_viewing_event(
             user_id=authenticated_client.__dict__.get("user_id"),
             property_id=prop["id"],
             scheduled_at=datetime.now() + timedelta(days=3),
