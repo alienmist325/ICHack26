@@ -300,7 +300,7 @@ interface UserProfile {
 export function ProfilePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -342,7 +342,7 @@ export function ProfilePage() {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to load profile";
       setError(errorMsg);
-      showToast(errorMsg, "error");
+      addToast(errorMsg, "error");
     } finally {
       setLoading(false);
     }
@@ -376,14 +376,14 @@ export function ProfilePage() {
 
       await api.put("/users/profile", profileData);
       setSuccess(true);
-      showToast("Profile updated successfully!", "success");
+      addToast("Profile updated successfully!", "success");
 
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to update profile";
       setError(errorMsg);
-      showToast(errorMsg, "error");
+      addToast(errorMsg, "error");
     } finally {
       setSaving(false);
     }
@@ -403,14 +403,14 @@ export function ProfilePage() {
       setError(null);
 
       await api.delete("/users/profile");
-      showToast("Account deleted successfully", "success");
+      addToast("Account deleted successfully", "success");
 
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to delete account";
       setError(errorMsg);
-      showToast(errorMsg, "error");
+      addToast(errorMsg, "error");
       setSaving(false);
     }
   };
