@@ -119,6 +119,11 @@ def init_db() -> None:
                 -- Nearby amenities
                 nearest_schools TEXT,  -- JSON array
                 
+                -- Property verification (Bland AI)
+                verification_status TEXT DEFAULT 'UNVERIFIED',
+                last_verified_at TEXT,
+                verification_notes TEXT,
+                
                 -- Timestamps
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -1,0 +1,162 @@
+"""Bland AI API client for making phone calls to verify properties."""
+
+import asyncio
+import logging
+import time
+from typing import Optional
+
+import requests
+
+from backend.config import settings
+from backend.services.verification.models import BlandCallResponse, BlandCallResult
+
+logger = logging.getLogger(__name__)
+
+# Bland AI API endpoints
+BLAND_AI_BASE_URL = "https://api.bland.ai"
+BLAND_AI_MAKE_CALL = f"{BLAND_AI_BASE_URL}/v1/calls"
+BLAND_AI_GET_CALL = f"{BLAND_AI_BASE_URL}/v1/calls"
+
+
+class BlandAIClient:
+    """Client for Bland AI API."""
+
+    def __init__(self, api_key: Optional[str] = None, timeout_seconds: int = 120):
+        """Initialize Bland AI client.
+
+        Args:
+            api_key: Bland AI API key (defaults to config)
+            timeout_seconds: Max seconds to wait for call completion
+        """
+        self.api_key = api_key or settings.bland_ai_api_key
+        self.timeout_seconds = timeout_seconds
+        self.headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
+
+    def make_call(self, phone_number: str, task: str) -> Optional[str]:
+        """Initiate a Bland AI call.
+
+        Args:
+            phone_number: Phone number to call
+            task: Task/prompt for the call
+
+        Returns:
+            call_id if successful, None otherwise
+        """
+        if not self.api_key:
+            logger.error("Bland AI API key not configured")
+            return None
+
+        payload = {
+            "phone_number": phone_number,
+            "task": task,
+            "language": "en",
+            "voice_id": 0,
+        }
+
+        try:
+            response = requests.post(
+                BLAND_AI_MAKE_CALL,
+                json=payload,
+                headers=self.headers,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            call_id = data.get("call_id")
+            logger.info(f"Started Bland AI call {call_id} to {phone_number}")
+            return call_id
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to initiate Bland AI call: {e}")
+            return None
+
+    def get_call_result(self, call_id: str) -> Optional[BlandCallResult]:
+        """Get the result of a Bland AI call.
+
+        Args:
+            call_id: The call ID
+
+        Returns:
+            BlandCallResult if call completed, None otherwise
+        """
+        if not self.api_key:
+            logger.error("Bland AI API key not configured")
+            return None
+
+        try:
+            response = requests.get(
+                f"{BLAND_AI_GET_CALL}/{call_id}",
+                headers=self.headers,
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            # Map API response to BlandCallResult
+            result = BlandCallResult(
+                call_id=call_id,
+                status=data.get("status", "unknown"),
+                duration=data.get("duration", 0),
+                transcript=data.get("transcript"),
+                success=data.get("success", False),
+                data=data.get("data"),
+            )
+            return result
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get Bland AI call result: {e}")
+            return None
+
+    def wait_for_call_completion(
+        self,
+        call_id: str,
+        max_wait_seconds: Optional[int] = None,
+        poll_interval_seconds: float = 2.0,
+    ) -> Optional[BlandCallResult]:
+        """Wait for a Bland AI call to complete with polling.
+
+        Args:
+            call_id: The call ID to wait for
+            max_wait_seconds: Maximum seconds to wait (defaults to self.timeout_seconds)
+            poll_interval_seconds: Seconds between polls
+
+        Returns:
+            BlandCallResult when completed, None if timeout/error
+        """
+        max_wait = max_wait_seconds or self.timeout_seconds
+        start_time = time.time()
+
+        while time.time() - start_time < max_wait:
+            result = self.get_call_result(call_id)
+
+            if result is None:
+                logger.error(f"Error fetching call result for {call_id}")
+                time.sleep(poll_interval_seconds)
+                continue
+
+            # Check if call completed (status should be "completed", "failed", etc.)
+            if result.status in ["completed", "failed", "error"]:
+                logger.info(f"Call {call_id} completed with status: {result.status}")
+                return result
+
+            # Still in progress, wait before polling again
+            logger.debug(f"Call {call_id} still in progress (status: {result.status})")
+            time.sleep(poll_interval_seconds)
+
+        logger.warning(f"Timeout waiting for call {call_id} after {max_wait} seconds")
+        return None
+
+
+# Singleton client instance
+_client: Optional[BlandAIClient] = None
+
+
+def get_bland_client() -> BlandAIClient:
+    """Get or create the Bland AI client singleton."""
+    global _client
+    if _client is None:
+        _client = BlandAIClient(
+            timeout_seconds=settings.bland_ai_timeout_seconds,
+        )
+    return _client

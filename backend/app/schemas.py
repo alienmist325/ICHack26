@@ -17,6 +17,15 @@ class PropertyStatus(str, Enum):
     ACCEPTED = "accepted"
 
 
+class VerificationStatus(str, Enum):
+    """Status of property verification via Bland AI."""
+
+    UNVERIFIED = "UNVERIFIED"
+    AVAILABLE = "AVAILABLE"
+    UNAVAILABLE = "UNAVAILABLE"
+    UNSURE = "UNSURE"
+
+
 class PropertyBase(BaseModel):
     rightmove_id: str
     listing_title: Optional[str] = None
@@ -82,6 +91,11 @@ class PropertyBase(BaseModel):
     # Nearby amenities
     nearest_schools: Optional[List[Dict[str, Any]]] = None
 
+    # Property verification (Bland AI)
+    verification_status: Optional[str] = None
+    last_verified_at: Optional[str] = None
+    verification_notes: Optional[str] = None
+
 
 class PropertyCreate(PropertyBase):
     """Schema for creating a new property."""
@@ -136,6 +150,9 @@ class PropertyUpdate(BaseModel):
     first_visible_date: Optional[str] = None
     listing_update_date: Optional[str] = None
     nearest_schools: Optional[List[Dict[str, Any]]] = None
+    verification_status: Optional[str] = None
+    last_verified_at: Optional[str] = None
+    verification_notes: Optional[str] = None
 
 
 class Property(PropertyBase):

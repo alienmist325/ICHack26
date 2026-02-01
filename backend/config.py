@@ -55,6 +55,16 @@ class Settings(BaseSettings):
         description="Proxy country for country-specific routing",
     )
 
+    # Bland AI configuration for property verification
+    bland_ai_api_key: Optional[str] = Field(
+        default=None,
+        description="Bland AI API key from https://app.bland.ai/dashboard/settings",
+    )
+    bland_ai_timeout_seconds: int = Field(
+        default=120,
+        description="Timeout for Bland AI calls in seconds",
+    )
+
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

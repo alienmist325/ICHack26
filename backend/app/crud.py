@@ -157,6 +157,31 @@ def get_property_by_id(property_id: int) -> Optional[Property]:
         return _row_to_property(row)
 
 
+def update_property_verification(
+    property_id: int,
+    verification_status: str,
+    last_verified_at: str,
+    verification_notes: Optional[str] = None,
+) -> Optional[Property]:
+    """Update verification fields for a property.
+
+    Args:
+        property_id: The property ID to update
+        verification_status: Status value (AVAILABLE, UNAVAILABLE, UNSURE, UNVERIFIED)
+        last_verified_at: ISO timestamp of verification
+        verification_notes: Optional notes from verification
+
+    Returns:
+        Updated Property object or None if not found
+    """
+    update_data = PropertyUpdate(
+        verification_status=verification_status,
+        last_verified_at=last_verified_at,
+        verification_notes=verification_notes,
+    )
+    return update_property(property_id, update_data)
+
+
 def get_property_by_rightmove_id(rightmove_id: str) -> Optional[Property]:
     """Get a property by its Rightmove ID."""
     with get_db_context() as conn:
