@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import crud
 from app.database import init_db
 from app.routers import auth, personalization, properties, shared_feeds, users, viewings
+from backend.config import settings
 from app.schemas import (
     DistanceRequest,
     DistanceResponse,
@@ -95,6 +96,16 @@ async def lifespan(app: FastAPI):
     _geocoding_service = GeocodingService()
     logger.info("Routing service initialized at app startup")
     logger.info("Geocoding service initialized at app startup")
+
+    # Log Bland AI configuration status
+    if settings.bland_ai_mock_mode:
+        logger.info(
+            f"[MOCK] Bland AI Mock Mode ENABLED - "
+            f"Calls will be routed to: {settings.bland_ai_mock_phone_number}"
+        )
+    else:
+        logger.info("[BLAND_AI] Using real Bland AI API - Mock mode disabled")
+
     yield
     # Shutdown: Clean up
     _routing_service = None
