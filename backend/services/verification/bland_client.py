@@ -3,7 +3,7 @@
 import logging
 import sys
 import time
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 
@@ -163,35 +163,28 @@ class BlandAIClient:
         return None
 
 
-# Singleton client instance
-_client: Optional[BlandAIClient] = None
+# Singleton client instance (can be either BlandAIClient or MockBlandAIClient)
+_client: Optional[Any] = None
 
 
-def get_bland_client() -> BlandAIClient:
+def get_bland_client() -> Any:
     """Get or create the Bland AI client singleton.
 
     Client selection logic:
-    1. If BLAND_AI_MOCK_MODE=true: Always use MockBlandAIClient
-    2. If running under pytest: Use MockBlandAIClient (safety layer)
-    3. Otherwise: Use real BlandAIClient for production
+    1. If running under pytest: Use MockBlandAIClient (safety layer - no real calls)
+    2. Otherwise: Always use real BlandAIClient
+       - BLAND_AI_MOCK_MODE=true: Routes calls to mock phone number instead of agent phone
+       - BLAND_AI_MOCK_MODE=false: Routes calls to real agent phone numbers (production)
 
-    This ensures verification tests can never make real API calls.
+    This ensures pytest can never make real API calls, but mock mode still uses real API.
     """
     global _client
     if _client is None:
         is_pytest = "pytest" in sys.modules
-        is_mock_mode = settings.bland_ai_mock_mode
 
-        if is_mock_mode:
-            logger.info("[MOCK] Using MockBlandAIClient (BLAND_AI_MOCK_MODE=true)")
-            from backend.services.verification.mock_client import MockBlandAIClient
-
-            _client = MockBlandAIClient(
-                timeout_seconds=settings.bland_ai_timeout_seconds,
-            )
-        elif is_pytest:
+        if is_pytest:
             logger.warning(
-                "[PYTEST] Using MockBlandAIClient during pytest (safety layer)"
+                "[PYTEST] Using MockBlandAIClient during pytest (safety layer - no real API calls)"
             )
             from backend.services.verification.mock_client import MockBlandAIClient
 
@@ -199,7 +192,15 @@ def get_bland_client() -> BlandAIClient:
                 timeout_seconds=settings.bland_ai_timeout_seconds,
             )
         else:
-            logger.info("[PRODUCTION] Using real BlandAIClient")
+            # Use real client for both MOCK_MODE and PRODUCTION
+            # The phone number routing (mock vs real) is handled in the service layer
+            is_mock_mode = settings.bland_ai_mock_mode
+            mode_str = (
+                "MOCK MODE (calling test phone)"
+                if is_mock_mode
+                else "PRODUCTION MODE (calling agent phone)"
+            )
+            logger.info(f"[PRODUCTION] Using real BlandAIClient - {mode_str}")
             _client = BlandAIClient(
                 timeout_seconds=settings.bland_ai_timeout_seconds,
             )
