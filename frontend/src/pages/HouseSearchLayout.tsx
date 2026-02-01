@@ -67,56 +67,6 @@ const ContentWrapper = styled.div`
   }
 `;
 
-
-
-const IconButton = styled.button`
-  background: none;
-  border: none;
-  color: ${colors.medText};
-  cursor: pointer;
-  font-size: 1.5rem;
-  transition: all ${animations.base};
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-
-  &:hover {
-    color: ${colors.teal};
-    background-color: ${colors.teal}15;
-    transform: translateY(-2px);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-`;
-
-const AccountIcon = styled.div`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: ${colors.teal}20;
-  border: 2px solid ${colors.teal};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  color: ${colors.teal};
-  cursor: pointer;
-  transition: all ${animations.base};
-
-  &:hover {
-    background-color: ${colors.teal}30;
-    transform: scale(1.05);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-`;
-
 const IconsContainer = styled.div`
   display: flex;
   align-items: center;
@@ -128,8 +78,6 @@ const LogoAndText = styled.div`
   align-items: center;
   gap: 16px;
 `;
-
-
 
 const IconButton = styled.button`
   background: none;
@@ -196,27 +144,27 @@ export function HouseSearchLayout() {
         </LogoAndText>
 
         <IconsContainer>
-          <IconButton 
+          <IconButton
             onClick={handleLogout}
             title="Logout"
           >
             <FiLogOut />
           </IconButton>
-          <IconButton 
-            onClick={() => navigate('/settings')} 
+          <IconButton
+            onClick={() => navigate('/settings')}
             title="Settings"
           >
             <FiSettings />
           </IconButton>
-          <IconButton 
-            onClick={() => navigate('/favorites')} 
+          <IconButton
+            onClick={() => navigate('/favorites')}
             title="Favorites"
           >
             <FiHeart />
           </IconButton>
           {user && (
-            <AccountIcon 
-              onClick={() => navigate('/profile')} 
+            <AccountIcon
+              onClick={() => navigate('/profile')}
               title={user.email}
             >
               <FiUser />
