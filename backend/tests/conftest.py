@@ -19,9 +19,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.main import app
-from app.database import get_db, init_db, DATABASE_PATH
+from app.database import get_db, get_db_context, init_db, DATABASE_PATH
 from app.security import hash_password, create_access_token, create_refresh_token
-from app.crud import create_user
 
 
 @pytest.fixture(scope="session")
@@ -138,19 +137,25 @@ def test_user_data():
 
 
 @pytest.fixture
-def test_user(test_user_data):
+def test_user(test_user_data, test_db_path):
     """
     Create a test user in the database.
 
     Returns the created user record with hashed password.
     """
-    user = create_user(
-        email=test_user_data["email"],
-        hashed_password=hash_password(test_user_data["password"]),
-        first_name=test_user_data["first_name"],
-        last_name=test_user_data["last_name"],
-    )
-    return user
+    with get_db_context() as conn:
+        cursor = conn.cursor()
+        hashed_password = hash_password(test_user_data["password"])
+        cursor.execute(
+            "INSERT INTO users (email, hashed_password) VALUES (?, ?)",
+            (test_user_data["email"], hashed_password),
+        )
+        cursor.execute(
+            "SELECT id, email, hashed_password, is_active FROM users WHERE email = ?",
+            (test_user_data["email"],),
+        )
+        row = cursor.fetchone()
+        return dict(zip([desc[0] for desc in cursor.description], row)) if row else None
 
 
 @pytest.fixture
@@ -163,8 +168,8 @@ def test_user_tokens(test_user):
         - refresh_token: Token for refreshing access
         - user_id: ID of the test user
     """
-    access_token = create_access_token(test_user["id"])
-    refresh_token = create_refresh_token(test_user["id"])
+    access_token = create_access_token(test_user["id"], test_user["email"])
+    refresh_token = create_refresh_token(test_user["id"], test_user["email"])
 
     return {
         "access_token": access_token,
@@ -192,13 +197,20 @@ def second_test_user():
     """
     Create a second test user for testing multi-user scenarios.
     """
-    user = create_user(
-        email="seconduser@example.com",
-        hashed_password=hash_password("SecurePassword456!"),
-        first_name="Second",
-        last_name="User",
-    )
-    return user
+    with get_db_context() as conn:
+        cursor = conn.cursor()
+        email = "seconduser@example.com"
+        hashed_password = hash_password("SecurePassword456!")
+        cursor.execute(
+            "INSERT INTO users (email, hashed_password) VALUES (?, ?)",
+            (email, hashed_password),
+        )
+        cursor.execute(
+            "SELECT id, email, hashed_password, is_active FROM users WHERE email = ?",
+            (email,),
+        )
+        row = cursor.fetchone()
+        return dict(zip([desc[0] for desc in cursor.description], row)) if row else None
 
 
 @pytest.fixture
@@ -206,8 +218,12 @@ def second_user_tokens(second_test_user):
     """
     Create tokens for the second test user.
     """
-    access_token = create_access_token(second_test_user["id"])
-    refresh_token = create_refresh_token(second_test_user["id"])
+    access_token = create_access_token(
+        second_test_user["id"], second_test_user["email"]
+    )
+    refresh_token = create_refresh_token(
+        second_test_user["id"], second_test_user["email"]
+    )
 
     return {
         "access_token": access_token,

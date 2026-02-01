@@ -10,14 +10,29 @@ DATABASE_PATH = Path(__file__).parent.parent / "data" / "rightmove.db"
 def get_db_connection() -> sqlite3.Connection:
     """Create a database connection with row factory."""
     DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DATABASE_PATH))
+    # Allow cross-thread access for development/testing with FastAPI TestClient
+    # SQLite will serialize access internally, so this is safe
+    conn = sqlite3.connect(str(DATABASE_PATH), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
+def get_db() -> sqlite3.Connection:
+    """FastAPI dependency to get a database connection.
+
+    Returns a raw sqlite3 connection. FastAPI handles cleanup automatically.
+    For manual transaction control, use get_db_context() instead.
+    """
+    return get_db_connection()
+
+
 @contextmanager
-def get_db() -> Generator[sqlite3.Connection, None, None]:
-    """Context manager for database connections."""
+def get_db_context() -> Generator[sqlite3.Connection, None, None]:
+    """Context manager for database connections (for non-FastAPI code).
+
+    Use this in CRUD operations and other code that needs explicit
+    transaction control. FastAPI routes should use Depends(get_db).
+    """
     conn = get_db_connection()
     try:
         yield conn
@@ -31,7 +46,7 @@ def get_db() -> Generator[sqlite3.Connection, None, None]:
 
 def init_db() -> None:
     """Initialize the database with all tables."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         # Properties table - stores all Rightmove listing data
