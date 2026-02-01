@@ -47,7 +47,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(
-    user_id: int, email: str, expires_delta: Optional[timedelta] = None
+    user_id: int, email: str = "", expires_delta: Optional[timedelta] = None
 ) -> str:
     """Create a JWT access token."""
     if expires_delta is None:
@@ -66,7 +66,7 @@ def create_access_token(
 
 
 def create_refresh_token(
-    user_id: int, email: str, expires_delta: Optional[timedelta] = None
+    user_id: int, email: str = "", expires_delta: Optional[timedelta] = None
 ) -> str:
     """Create a JWT refresh token."""
     if expires_delta is None:
@@ -112,7 +112,8 @@ def verify_token(token: str, token_type: str = "access") -> Optional[TokenData]:
 
     except jwt.ExpiredSignatureError:
         return None
-    except jwt.JWTError:
+    except Exception:
+        # Catch all JWT errors (JWTError, PyJWTError, etc.)
         return None
 
 
