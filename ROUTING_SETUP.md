@@ -15,26 +15,23 @@ This will install all dependencies including:
 - `routingpy>=1.3.0` - For routing calculations
 - `shapely>=2.1.2` - For point-in-polygon queries
 
-### 2. Configure OSRM (Recommended for Development)
+### 2. Get a GraphHopper API Key
 
-The default configuration uses OSRM (OpenStreetMap Routing Machine) which is free and open-source.
+The default configuration uses GraphHopper which provides cloud-based routing with a generous free tier.
 
-#### Option A: Local OSRM with Docker (Recommended)
+#### Option A: Cloud API (Recommended - No Setup Required)
 
-```bash
-# Pull and run OSRM container
-docker run -d -p 5000:5000 --name osrm \
-  osrm/osrm-backend \
-  osrm_routed /data/great-britain-latest.osrm
+1. Sign up for free at: https://www.graphhopper.com/dashboard/sign-up
+2. Go to your dashboard and create a new API key
+3. The free tier includes ~1,000 requests per day
+4. Add the API key to your `.env` file (see below)
 
-# Verify it's running
-curl http://localhost:5000/status
-# Should return: {"status":0,"message":"Ok"}
-```
+#### Option B: Self-Hosted GraphHopper (Advanced)
 
-#### Option B: Install OSRM Locally
-
-See [OSRM Installation Guide](http://project-osrm.org/docs/v5.5.1/building-from-source/)
+For unlimited requests or private data:
+1. Follow the [GraphHopper Installation Guide](https://www.graphhopper.com/blog/2017/09/29/installation-guide-routing-engine/)
+2. Update `GRAPHHOPPER_BASE_URL` in `.env` to your server URL
+3. Generate your own API key if required by your installation
 
 ### 3. Configure Environment Variables
 
@@ -44,11 +41,14 @@ Create or update `.env` file in the project root:
 # Apify API key (required for scraping)
 APIFY_API_KEY=<your-apify-key>
 
-# Routing Service Configuration
-ROUTING_PROVIDER=osrm
-OSRM_BASE_URL=http://localhost:5000
+# Routing Service Configuration - GraphHopper
+ROUTING_PROVIDER=graphhopper
+ROUTING_API_KEY=<your-graphhopper-api-key>
+GRAPHHOPPER_BASE_URL=https://graphhopper.com/api/1
 ROUTING_TIMEOUT_SECONDS=30
 ```
+
+**Important**: `ROUTING_API_KEY` is required for GraphHopper. Without it, the service will raise a helpful error directing you to get a free key.
 
 ### 4. Run the Backend
 
@@ -182,16 +182,22 @@ Three new functions:
 ## Configuration Reference
 
 ### ROUTING_PROVIDER
-- `"osrm"` (default) - OpenStreetMap Routing Machine
-- `"mapbox"` - Mapbox API
+- `"graphhopper"` (default) - GraphHopper cloud API
+- `"mapbox"` - Mapbox API (alternative)
 
-### OSRM_BASE_URL
-- Default: `http://localhost:5000`
-- Change if running OSRM on different port/host
+### ROUTING_API_KEY
+- **Required** for GraphHopper and Mapbox
+- Get free key at: https://www.graphhopper.com/dashboard/sign-up
+- Free tier: ~1,000 requests per day
+
+### GRAPHHOPPER_BASE_URL
+- Default: `https://graphhopper.com/api/1`
+- For self-hosted: Use your server URL
+- Change if running GraphHopper on different host
 
 ### ROUTING_TIMEOUT_SECONDS
 - Default: 30 seconds
-- Increase if OSRM responses are slow
+- Increase if API responses are slow
 - Decrease for faster failures
 
 ### UK_BOUNDS (in config.py)
@@ -219,10 +225,17 @@ All coordinates are validated against these bounds.
 
 ### Common Errors and Solutions
 
-**"Routing service unavailable" (503)**
-- Check if OSRM is running: `curl http://localhost:5000/status`
-- Check network connectivity
-- Increase timeout in `.env`
+**"ROUTING_API_KEY environment variable is required for GraphHopper provider" (400)**
+- Sign up at: https://www.graphhopper.com/dashboard/sign-up
+- Create an API key in your dashboard
+- Add to `.env`: `ROUTING_API_KEY=<your-key>`
+- Restart the application
+
+**"Cannot connect to GraphHopper API" (503)**
+- Check internet connection
+- Verify ROUTING_API_KEY is valid
+- Check API key hasn't exceeded rate limits (1,000/day on free tier)
+- Check GraphHopper status at: https://status.graphhopper.com/
 
 **"Invalid coordinates" (400)**
 - Verify coordinates are within UK bounds
@@ -329,4 +342,5 @@ For issues or questions:
 1. Check `ROUTING_SERVICE.md` for detailed documentation
 2. Review error messages and troubleshooting section
 3. Check logs with `debug` level enabled
-4. Verify OSRM server is running and accessible
+4. Verify GraphHopper API key is valid at: https://www.graphhopper.com/dashboard/
+5. For GraphHopper issues, see: https://docs.graphhopper.com/

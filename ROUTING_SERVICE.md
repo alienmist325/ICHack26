@@ -245,14 +245,14 @@ List properties with optional isochrone-based filtering combined with existing f
 ### Environment Variables
 
 ```bash
-# Routing Provider (osrm, mapbox, etc.)
-ROUTING_PROVIDER=osrm
+# Routing Provider (graphhopper is default, mapbox alternative)
+ROUTING_PROVIDER=graphhopper
 
-# OSRM Server URL (for local OSRM installation)
-OSRM_BASE_URL=http://localhost:5000
+# GraphHopper API Key (REQUIRED for graphhopper provider)
+ROUTING_API_KEY=<your-graphhopper-api-key>
 
-# API Key (for paid providers)
-ROUTING_API_KEY=<optional-for-mapbox>
+# GraphHopper Base URL (default is cloud API)
+GRAPHHOPPER_BASE_URL=https://graphhopper.com/api/1
 
 # Request timeout in seconds
 ROUTING_TIMEOUT_SECONDS=30
@@ -260,15 +260,17 @@ ROUTING_TIMEOUT_SECONDS=30
 
 ### Providers Supported
 
-#### OSRM (Recommended for development)
-- **Setup**: Run local OSRM server via Docker
-- **URL**: Default `http://localhost:5000`
-- **Cost**: Free (self-hosted)
-- **Data**: OpenStreetMap
+#### GraphHopper (Default)
+- **Setup**: Free API key from https://www.graphhopper.com/dashboard/sign-up
+- **URL**: Default `https://graphhopper.com/api/1` (cloud API)
+- **Cost**: Free tier (~1,000 requests/day), paid plans available
+- **Data**: OpenStreetMap + proprietary
+- **Self-Hosting**: Optional for unlimited requests
 
 ```bash
-# Docker command to run OSRM
-docker run -t -i -p 5000:5000 osrm/osrm-backend osrm_routed /data/great-britain-latest.osrm
+# Example .env for cloud API
+ROUTING_API_KEY=<your-api-key>
+ROUTING_PROVIDER=graphhopper
 ```
 
 #### Mapbox
@@ -276,6 +278,10 @@ docker run -t -i -p 5000:5000 osrm/osrm-backend osrm_routed /data/great-britain-
 - **Cost**: Paid (with free tier)
 - **Accuracy**: High
 - **Configure**: Set ROUTING_PROVIDER=mapbox and ROUTING_API_KEY
+
+#### OSRM (Deprecated)
+- **Status**: No longer supported
+- **Migration**: Use GraphHopper instead (see QUICKSTART.md)
 
 ## Data Validation
 

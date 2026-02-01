@@ -20,16 +20,16 @@ class Settings(BaseSettings):
 
     # Routing service configuration
     routing_provider: str = Field(
-        default="osrm",
-        description="Routing provider to use: osrm, mapbox, etc.",
-    )
-    osrm_base_url: str = Field(
-        default="http://localhost:5000",
-        description="Base URL for OSRM server (used when routing_provider=osrm)",
+        default="graphhopper",
+        description="Routing provider to use: graphhopper (default), osrm, mapbox, etc.",
     )
     routing_api_key: Optional[str] = Field(
         default=None,
-        description="API key for routing service (if using paid provider)",
+        description="API key for routing service (required for GraphHopper)",
+    )
+    graphhopper_base_url: str = Field(
+        default="https://graphhopper.com/api/1",
+        description="Base URL for GraphHopper API (default: official cloud API)",
     )
     routing_timeout_seconds: int = Field(
         default=30,
@@ -60,7 +60,7 @@ except Exception as e:
 # ============================================================================
 
 ROUTING_PROVIDER: str = settings.routing_provider
-OSRM_BASE_URL: str = settings.osrm_base_url
+GRAPHHOPPER_BASE_URL: str = settings.graphhopper_base_url
 ROUTING_API_KEY: Optional[str] = settings.routing_api_key
 ROUTING_TIMEOUT_SECONDS: int = settings.routing_timeout_seconds
 

@@ -16,7 +16,7 @@ import routingpy
 from shapely.geometry import Point, shape
 
 from backend.config import (
-    OSRM_BASE_URL,
+    GRAPHHOPPER_BASE_URL,
     ROUTING_API_KEY,
     ROUTING_PROVIDER,
     ROUTING_TIMEOUT_SECONDS,
@@ -57,10 +57,22 @@ class RoutingService:
 
         logger.debug(f"Creating routing client for provider: {self._provider}")
 
-        if self._provider.lower() == "osrm":
-            self._client = routingpy.OSRM(
-                base_url=OSRM_BASE_URL,
+        if self._provider.lower() == "graphhopper":
+            if ROUTING_API_KEY is None:
+                raise ValueError(
+                    "ROUTING_API_KEY environment variable is required for GraphHopper provider. "
+                    "Get an API key from: https://www.graphhopper.com/dashboard/sign-up"
+                )
+            self._client = routingpy.Graphhopper(
+                api_key=ROUTING_API_KEY,
+                base_url=GRAPHHOPPER_BASE_URL,
                 timeout=ROUTING_TIMEOUT_SECONDS,
+            )
+        elif self._provider.lower() == "osrm":
+            raise ValueError(
+                "OSRM provider is no longer supported. "
+                "Please use GraphHopper or another supported provider. "
+                "Set ROUTING_PROVIDER=graphhopper and provide ROUTING_API_KEY."
             )
         elif self._provider.lower() == "mapbox":
             if ROUTING_API_KEY is None:
@@ -69,17 +81,10 @@ class RoutingService:
                 api_key=str(ROUTING_API_KEY),
                 timeout=ROUTING_TIMEOUT_SECONDS,
             )
-        elif self._provider.lower() == "mapbox":
-            if ROUTING_API_KEY is None:
-                raise ValueError("ROUTING_API_KEY required when using Mapbox provider")
-            self._client = routingpy.MapboxOSRM(
-                api_key=ROUTING_API_KEY,
-                timeout=ROUTING_TIMEOUT_SECONDS,
-            )
         else:
             raise ValueError(
                 f"Unsupported routing provider: {self._provider}. "
-                "Supported providers: osrm, mapbox"
+                "Supported providers: graphhopper, mapbox"
             )
 
         return self._client

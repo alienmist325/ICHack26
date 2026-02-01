@@ -62,9 +62,9 @@ A comprehensive routing and distance service has been successfully implemented f
 **Location**: `backend/config.py`
 
 **New Settings**:
-- `routing_provider` - OSRM (default) or Mapbox
-- `osrm_base_url` - OSRM server URL (default: http://localhost:5000)
-- `routing_api_key` - Optional API key for paid providers
+- `routing_provider` - GraphHopper (default) or Mapbox
+- `graphhopper_base_url` - GraphHopper API URL (default: https://graphhopper.com/api/1)
+- `routing_api_key` - API key for GraphHopper/Mapbox (REQUIRED)
 - `routing_timeout_seconds` - Request timeout (default: 30s)
 
 **Constants**:
@@ -113,32 +113,39 @@ backend/
 
 ### Environment Variables (.env)
 ```bash
-# Routing service configuration
-ROUTING_PROVIDER=osrm
-OSRM_BASE_URL=http://localhost:5000
+# Routing service configuration (GraphHopper is now default)
+ROUTING_PROVIDER=graphhopper
+ROUTING_API_KEY=<your-graphhopper-api-key>
+GRAPHHOPPER_BASE_URL=https://graphhopper.com/api/1
 ROUTING_TIMEOUT_SECONDS=30
-
-# Optional: for Mapbox provider
-# ROUTING_API_KEY=<your-mapbox-key>
 ```
 
 ### Supported Providers
-- **OSRM** (default) - Free, open-source, self-hosted
-- **Mapbox** - Paid, high accuracy, cloud-hosted
+- **GraphHopper** (default) - Free tier (~1,000 requests/day), cloud-hosted
+- **Mapbox** - Alternative, requires API key
+- **OSRM** - Deprecated (use GraphHopper instead)
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies with uv
+### 1. Get GraphHopper API Key
+```bash
+# Sign up for free at:
+# https://www.graphhopper.com/dashboard/sign-up
+# Create an API key in your dashboard
+```
+
+### 2. Install Dependencies with uv
 ```bash
 uv sync
 ```
 
-### 2. Start OSRM Server (Local Development)
+### 3. Configure .env File
 ```bash
-docker run -d -p 5000:5000 osrm/osrm-backend osrm_routed /data/great-britain-latest.osrm
+ROUTING_API_KEY=<your-graphhopper-api-key>
+ROUTING_PROVIDER=graphhopper
 ```
 
-### 3. Run Backend
+### 4. Run Backend
 ```bash
 cd backend
 uv run fastapi dev app/main.py
