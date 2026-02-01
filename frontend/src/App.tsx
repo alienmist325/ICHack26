@@ -109,7 +109,7 @@ function App() {
               />
 
               <Route
-                path="/house"
+                path="/house/:id"
                 element={
                   <ProtectedRoute>
                     <>

@@ -78,7 +78,7 @@ const Image = styled.img`
   transition: opacity 0.3s ease;
 `;
 
-const PlaceholderIcon = styled.div`
+export const PlaceholderIcon = styled.div`
   font-size: 4rem;
   color: ${colors.teal}40;
   display: flex;
@@ -97,7 +97,7 @@ const PlaceholderIcon = styled.div`
   }
 `;
 
-const CarouselControls = styled.div<{ visible: boolean }>`
+export const CarouselControls = styled.div<{ visible: boolean }>`
   position: absolute;
   top: 0;
   left: 0;
@@ -112,7 +112,7 @@ const CarouselControls = styled.div<{ visible: boolean }>`
   background: rgba(0, 0, 0, 0.2);
 `;
 
-const ArrowButton = styled.button`
+export const ArrowButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -137,17 +137,17 @@ const ArrowButton = styled.button`
   }
 `;
 
-const LargeChevronRight = styled(FiChevronRight)`
+export const LargeChevronRight = styled(FiChevronRight)`
   transform: scale(2);
   transform-origin: center;
 `;
 
-const LargeChevronLeft = styled(FiChevronLeft)`
+export const LargeChevronLeft = styled(FiChevronLeft)`
   transform: scale(2);
   transform-origin: center;
 `;
 
-const ImageCounter = styled.div`
+export const ImageCounter = styled.div`
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -357,7 +357,7 @@ export function HouseCard(props: HouseCardProps) {
     if (isHovering && hasImages) {
       const interval = setInterval(() => {
         setCurrentImageIndex((prev) => (prev + 1) % images.length);
-      }, 3000);
+      }, 1000);
       setAutoPlayInterval(interval);
     } else {
       if (autoPlayInterval) {
@@ -505,36 +505,8 @@ export function HouseCard(props: HouseCardProps) {
           {house.price.toLocaleString()}
         </InfoRow>
 
-        {house.bedrooms !== undefined && house.bathrooms !== undefined && (
-          <InfoRow>
-            <IoBed /> <strong>Bedrooms:</strong> {house.bedrooms}
-            <div> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </div>
-            <FaToiletPaper /> <strong>Bathrooms:</strong> {house.bathrooms}
-          </InfoRow>
-        )}
-
-        {house.bedrooms !== undefined && house.bathrooms === undefined && (
-          <InfoRow>
-            <IoBed /> <strong>Bedrooms:</strong> {house.bedrooms}
-          </InfoRow>
-        )}
-
-        {house.bathrooms !== undefined && house.bedrooms === undefined && (
-          <InfoRow>
-            <FaToiletPaper /> <strong>Bathrooms:</strong> {house.bathrooms}
-          </InfoRow>
-        )}
-
-        {house.features && house.features.length > 0 && (
-          <Features>
-            {house.features.map((feature, index) => (
-              <li key={index}>{feature}</li>
-            ))}
-          </Features>
-        )}
-
         <Button
-          onClick={() => handleNavigation("/house")}
+          onClick={() => handleNavigation(`/house/${house.id}`)}
           style={{ color: "#000000ff", backgroundColor: "#49dfb5" }}
         >
           View more details
@@ -573,51 +545,6 @@ export function HouseCard(props: HouseCardProps) {
             <ScoreDisplay>Score: {house.score.toFixed(1)}</ScoreDisplay>
           )}
         </RatingContainer>
-
-        <ActionBar>
-          <StarButton
-            isBookmarked={isBookmarked}
-            onClick={handleToggleBookmark}
-            disabled={isVoting}
-            title="Add to bookmarks"
-          >
-            {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
-            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
-          </StarButton>
-
-          <StatusSelect
-            value={propertyStatus || ""}
-            onChange={(e) =>
-              handleStatusChange((e.target.value as PropertyStatus) || null)
-            }
-            disabled={isUpdatingStatus}
-            title="Track your property status"
-          >
-            <option value="">Set Status...</option>
-            <option value="interested">Interested</option>
-            <option value="viewing">Viewing Scheduled</option>
-            <option value="offer">Made Offer</option>
-            <option value="accepted">Offer Accepted</option>
-          </StatusSelect>
-
-          <CommentsButton
-            onClick={() => setShowComments(!showComments)}
-            title="View and add comments"
-          >
-            <FiMessageCircle size={16} />
-            <span>Comments</span>
-            <CommentCount>({commentCount})</CommentCount>
-          </CommentsButton>
-        </ActionBar>
-
-        {showComments && (
-          <CommentsSection>
-            <p style={{ color: "#999", fontSize: "0.9rem" }}>
-              Comments feature coming soon! This property has {commentCount}{" "}
-              comments.
-            </p>
-          </CommentsSection>
-        )}
       </ContentContainer>
     </CardContainer>
   );
