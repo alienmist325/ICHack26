@@ -129,14 +129,10 @@ async def _verify_property_async(property_id: int) -> None:
 
     logger.info(f"Making Bland AI call to {agent_phone} for property {property_id}")
 
-    # Use mock phone number if in mock mode
-    if settings.bland_ai_mock_mode:
-        phone_to_call = settings.bland_ai_mock_phone_number
-        logger.info(
-            f"[MOCK] Using test phone number: {phone_to_call} instead of agent phone"
-        )
-    else:
-        phone_to_call = agent_phone
+    # ALWAYS use your test phone number for verification calls
+    # This prevents accidental calls to real agent numbers
+    phone_to_call = settings.bland_ai_mock_phone_number
+    logger.info(f"[BLAND_AI] Using test phone number: {phone_to_call} for verification")
 
     # Initiate Bland AI call
     client = get_bland_client()
