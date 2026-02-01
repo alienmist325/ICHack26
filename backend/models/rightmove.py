@@ -126,6 +126,16 @@ class ProxyConfig(BaseModel):
     useApifyProxy: bool = Field(
         default=True, description="Whether to use Apify's proxy service"
     )
+    url: str = Field(default="", description="Proxy URL (if not using Apify proxy)")
+    username: str = Field(
+        default="", description="Proxy username (if authentication required)"
+    )
+    password: str = Field(
+        default="", description="Proxy password (if authentication required)"
+    )
+    country: str = Field(
+        default="", description="Proxy country (for country-specific proxies)"
+    )
 
 
 class RightmoveScraperInput(BaseModel):
@@ -200,8 +210,38 @@ class RightmoveScraperInput(BaseModel):
     )
 
     def to_apify_dict(self) -> dict:
-        """Convert the model to a dictionary format compatible with Apify API."""
-        return self.model_dump(by_alias=False, exclude_none=False)
+        """
+        Convert the model to a dictionary format compatible with Apify API.
+
+        Excludes proxy configuration fields that are not relevant:
+        - If useApifyProxy is True, excludes url, username, password, country
+        - If useApifyProxy is False, only includes non-empty proxy fields
+        """
+        data = self.model_dump(by_alias=False, exclude_none=False)
+
+        # Clean up proxy configuration
+        if data.get("proxy"):
+            if data["proxy"].get("useApifyProxy"):
+                # Only keep useApifyProxy when using Apify proxy
+                data["proxy"] = {"useApifyProxy": True}
+            else:
+                # When using custom proxy, remove empty fields
+                proxy = data["proxy"]
+                cleaned_proxy = {"useApifyProxy": False}
+
+                # Only include non-empty custom proxy fields
+                if proxy.get("url"):
+                    cleaned_proxy["url"] = proxy["url"]
+                if proxy.get("username"):
+                    cleaned_proxy["username"] = proxy["username"]
+                if proxy.get("password"):
+                    cleaned_proxy["password"] = proxy["password"]
+                if proxy.get("country"):
+                    cleaned_proxy["country"] = proxy["country"]
+
+                data["proxy"] = cleaned_proxy
+
+        return data
 
 
 class RightmoveData(BaseModel):

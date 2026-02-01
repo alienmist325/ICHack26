@@ -27,8 +27,6 @@ from app.schemas import (
     TravelTimeResponse,
     TravelTimeResult,
 )
-from backend.models.rightmove import RightmoveScraperInput
-from backend.scraper.scrape import scrape_rightmove
 from app.routers import auth, users, properties, viewings, shared_feeds, personalization
 from backend.services.geocoding_service import GeocodingService
 from backend.services.routing_service import (
@@ -418,81 +416,6 @@ async def health_check():
 
 # ============================================================================
 # Scraping endpoints
-# ============================================================================
-
-
-@app.post("/api/scrape", response_model=List[Property], status_code=200)
-async def scrape_properties(config: RightmoveScraperInput):
-    """
-    Scrape Rightmove properties using the provided configuration.
-
-    This endpoint:
-    1. Accepts Rightmove scraper configuration
-    2. Scrapes properties from Rightmove using Apify
-    3. Converts and stores properties in the database
-    4. Returns the stored properties
-
-    Args:
-        config: RightmoveScraperInput with scraping parameters
-
-    Returns:
-        List of Property objects that were stored in the database
-
-    Raises:
-        HTTPException 500: If scraping or storage fails
-    """
-    try:
-        logger.info(
-            f"Starting Rightmove scrape with config: {config.model_dump(exclude_unset=True)}"
-        )
-
-        # Scrape properties from Rightmove using Apify
-        response = await scrape_rightmove(config)
-
-        if not response.properties:
-            logger.warning("Scrape completed but no properties returned")
-            return []
-
-        logger.info(f"Scraped {len(response.properties)} properties from Rightmove")
-
-        # Convert and store each property
-        stored_properties: List[Property] = []
-        for rightmove_prop in response.properties:
-            try:
-                # Convert RightmoveProperty to PropertyCreate
-                property_data = crud.rightmove_property_to_create(rightmove_prop)
-
-                # Upsert into database (create or update based on rightmove_id)
-                property_obj, created = crud.upsert_property(property_data)
-                stored_properties.append(property_obj)
-
-                action = "Created" if created else "Updated"
-                logger.debug(
-                    f"{action} property {rightmove_prop.id}: {rightmove_prop.title}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed to store property {rightmove_prop.id}: {str(e)}",
-                    exc_info=True,
-                )
-                # Continue with next property instead of failing entire request
-                continue
-
-        logger.info(
-            f"Successfully stored {len(stored_properties)} properties in database"
-        )
-        return stored_properties
-
-    except ValueError as e:
-        # Configuration/validation error
-        logger.error(f"Configuration error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        # Unexpected error
-        logger.error(f"Scraping failed: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Scraping failed: {str(e)}")
-
-
 # ============================================================================
 # Routing & Distance endpoints
 # ============================================================================
