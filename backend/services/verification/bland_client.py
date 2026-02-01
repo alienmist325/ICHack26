@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import sys
 import time
 from typing import Optional
 
@@ -170,19 +171,36 @@ _client: Optional[BlandAIClient] = None
 def get_bland_client() -> BlandAIClient:
     """Get or create the Bland AI client singleton.
 
-    Returns MockBlandAIClient if BLAND_AI_MOCK_MODE is enabled,
-    otherwise returns the real BlandAIClient.
+    Client selection logic:
+    1. If BLAND_AI_MOCK_MODE=true: Always use MockBlandAIClient
+    2. If running under pytest: Use MockBlandAIClient (safety layer)
+    3. Otherwise: Use real BlandAIClient for production
+
+    This ensures verification tests can never make real API calls.
     """
     global _client
     if _client is None:
-        if settings.bland_ai_mock_mode:
-            logger.info("[MOCK] Using MockBlandAIClient for testing")
+        is_pytest = "pytest" in sys.modules
+        is_mock_mode = settings.bland_ai_mock_mode
+
+        if is_mock_mode:
+            logger.info("[MOCK] Using MockBlandAIClient (BLAND_AI_MOCK_MODE=true)")
+            from backend.services.verification.mock_client import MockBlandAIClient
+
+            _client = MockBlandAIClient(
+                timeout_seconds=settings.bland_ai_timeout_seconds,
+            )
+        elif is_pytest:
+            logger.warning(
+                "[PYTEST] Using MockBlandAIClient during pytest (safety layer)"
+            )
             from backend.services.verification.mock_client import MockBlandAIClient
 
             _client = MockBlandAIClient(
                 timeout_seconds=settings.bland_ai_timeout_seconds,
             )
         else:
+            logger.info("[PRODUCTION] Using real BlandAIClient")
             _client = BlandAIClient(
                 timeout_seconds=settings.bland_ai_timeout_seconds,
             )

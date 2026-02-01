@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import sys
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -18,10 +19,10 @@ def _analyze_transcript(
 ) -> VerificationStatus:
     """Analyze call transcript to determine property availability.
 
-    Uses keyword heuristics and context analysis to determine if property is:
-    - AVAILABLE: Agent confirmed property is still available
-    - UNAVAILABLE: Agent confirmed property is sold/rented/off market
-    - UNSURE: Ambiguous or unclear response
+    Uses pattern matching and keyword heuristics with proper priority:
+    1. User responses (user: Yes/No)
+    2. Negation/affirmation patterns (context-aware regex)
+    3. Keyword matching (less ambiguous first)
 
     Args:
         transcript: The call transcript text
@@ -33,15 +34,14 @@ def _analyze_transcript(
     if not transcript:
         return VerificationStatus.UNSURE
 
-    # Normalize transcript for matching
     lower_transcript = transcript.lower()
-
-    # PRIORITY 1: Extract and analyze user responses first (highest priority)
-    # This prevents matching keywords in questions
     import re
 
+    # ============================================================================
+    # PRIORITY 1: User responses from API format ("user: Yes/No")
+    # ============================================================================
     user_response_patterns = [
-        r'\buser:\s*["\']?(\w+)["\']?',  # "user: No." or user: Yes
+        r'\buser:\s*["\']?(\w+)["\']?',
         r'\b(?:caller|user|prospect|tenant|buyer)(?:\s+(?:said|responded|replied))?\s*["\']?(\w+)["\']?',
     ]
 
@@ -52,118 +52,80 @@ def _analyze_transcript(
 
     logger.debug(f"Extracted user statements: {user_statements}")
 
-    # Check simple yes/no responses from user (HIGHEST PRIORITY)
     for statement in user_statements:
         if statement in ["no", "nope", "nope.", "no."]:
-            logger.info(f"Detected user 'no' response: '{statement}' → UNAVAILABLE")
+            logger.info(f"User response: '{statement}' → UNAVAILABLE")
             return VerificationStatus.UNAVAILABLE
         elif statement in ["yes", "yes.", "yep", "yep."]:
-            logger.info(f"Detected user 'yes' response: '{statement}' → AVAILABLE")
+            logger.info(f"User response: '{statement}' → AVAILABLE")
             return VerificationStatus.AVAILABLE
 
-    # PRIORITY 2: Check for unavailable keywords (from agent's response)
-    unavailable_keywords = [
-        "sold",
-        "let",
-        "rented",
-        "taken",
-        "no longer available",
-        "off market",
-        "withdrawn",
-        "delisted",
-        "no longer listed",
-        "already sold",
-        "already rented",
-        "no longer for rent",
-        "no longer for sale",
-        "no longer selling",
-        "been let",
-        "been rented",
+    # ============================================================================
+    # PRIORITY 2: Context-aware pattern matching (before keyword substring match)
+    # This handles negations and prevents false matches from simple keywords
+    # ============================================================================
+
+    # Uncertainty patterns - check FIRST to catch "Maybe it's available" scenarios
+    # "Maybe" + any affirmation should still be UNSURE
+    uncertainty_patterns = [
+        r"(?:maybe|i think|i believe|might be|not sure|not certain|could be|can\'t find)",
     ]
 
-    for keyword in unavailable_keywords:
-        if keyword in lower_transcript:
-            logger.info(f"Found unavailable keyword: '{keyword}'")
-            return VerificationStatus.UNAVAILABLE
-
-    # PRIORITY 3: Check for available keywords (from agent's response)
-    available_keywords = [
-        "yes",
-        "available",
-        "still available",
-        "still listed",
-        "still on market",
-        "on the market",
-        "can show",
-        "can view",
-        "can arrange a viewing",
-        "viewing available",
-        "listed",
-        "listing is active",
-        "still have",
-        "still selling",
-        "haven't sold",
-        "actively marketing",
-        "great opportunity",
-    ]
-
-    for keyword in available_keywords:
-        if keyword in lower_transcript:
-            logger.info(f"Found available keyword: '{keyword}'")
-            return VerificationStatus.AVAILABLE
-
-    # PRIORITY 4: Check for unsure keywords (from agent's response)
-    unsure_keywords = [
-        "not sure",
-        "i think so",
-        "maybe",
-        "i believe so",
-        "might be",
-        "need to check",
-        "let me check",
-        "not entirely sure",
-        "i'm not certain",
-        "can't find",
-    ]
-
-    for keyword in unsure_keywords:
-        if keyword in lower_transcript:
-            logger.info(f"Found unsure keyword: '{keyword}'")
+    for pattern in uncertainty_patterns:
+        if re.search(pattern, lower_transcript):
+            logger.info(f"Uncertainty pattern match: {pattern} → UNSURE")
             return VerificationStatus.UNSURE
 
-    # PRIORITY 5: Advanced pattern-based analysis for more nuanced responses
-
-    # Look for negation patterns (context-aware)
+    # Negation patterns - definitive UNAVAILABLE
     negation_patterns = [
         r"(?:it\'s not|isn\'t|not)\s+(?:available|listed|on the market|for sale)",
-        r"(?:don\'t have|can\'t find|couldn\'t locate)\s+(?:that|this|the property)",
         r"(?:no longer|not anymore|never)\s+(?:available|listed|for sale|for rent)",
+        r"(?:don\'t have|don\'t have that|can\'t|couldn\'t locate)",
     ]
 
     for pattern in negation_patterns:
         if re.search(pattern, lower_transcript):
-            logger.info(f"Detected negation pattern: {pattern}")
+            logger.info(f"Negation pattern match: {pattern} → UNAVAILABLE")
             return VerificationStatus.UNAVAILABLE
 
-    # Look for affirmation patterns
+    # Affirmation patterns - highest confidence for AVAILABLE
     affirmation_patterns = [
-        r"(?:we still have|we\'re still|we continue to|currently\s+(?:have|list))",
-        r"(?:still\s+(?:available|listed|on\s+market))",
+        r"(?:we still have|we\'re still|we continue to|still\s+(?:selling|marketing))",
+        r"(?:haven\'t sold|not sold|never sold)",
+        r"(?:still\s+(?:available|listed|on\s+market|actively\s+marketing))",
     ]
 
     for pattern in affirmation_patterns:
         if re.search(pattern, lower_transcript):
-            logger.info(f"Detected affirmation pattern: {pattern}")
+            logger.info(f"Affirmation pattern match: {pattern} → AVAILABLE")
             return VerificationStatus.AVAILABLE
 
-    # If no patterns matched, status is UNSURE
-    logger.info("No clear patterns matched in transcript")
-    return VerificationStatus.UNSURE
+    # ============================================================================
+    # PRIORITY 3: Keyword matching (only after patterns checked)
+    # ============================================================================
 
-    # Normalize transcript for matching
-    lower_transcript = transcript.lower()
+    # Keywords for UNAVAILABLE (but exclude false positives like "let me check")
+    unavailable_keywords = [
+        "sold",
+        "rented",
+        "taken",
+        "off market",
+        "withdrawn",
+        "delisted",
+        "no longer listed",
+        "already sold",
+        "already rented",
+        "been let",
+        "been rented",
+        "been sold",
+    ]
 
-    # Keywords indicating property is AVAILABLE
+    for keyword in unavailable_keywords:
+        if keyword in lower_transcript:
+            logger.info(f"Unavailable keyword: '{keyword}' → UNAVAILABLE")
+            return VerificationStatus.UNAVAILABLE
+
+    # Keywords for AVAILABLE
     available_keywords = [
         "yes",
         "available",
@@ -171,40 +133,26 @@ def _analyze_transcript(
         "still listed",
         "still on market",
         "on the market",
+        "for sale",
+        "for rent",
         "can show",
         "can view",
         "can arrange a viewing",
         "viewing available",
         "listed",
+        "listing",
         "listing is active",
-        "still have",
-        "still selling",
-        "haven't sold",
         "actively marketing",
         "great opportunity",
+        "current listing",
     ]
 
-    # Keywords indicating property is UNAVAILABLE
-    unavailable_keywords = [
-        "sold",
-        "let",
-        "rented",
-        "taken",
-        "no longer available",
-        "off market",
-        "withdrawn",
-        "delisted",
-        "no longer listed",
-        "already sold",
-        "already rented",
-        "no longer for rent",
-        "no longer for sale",
-        "no longer selling",
-        "been let",
-        "been rented",
-    ]
+    for keyword in available_keywords:
+        if keyword in lower_transcript:
+            logger.info(f"Available keyword: '{keyword}' → AVAILABLE")
+            return VerificationStatus.AVAILABLE
 
-    # Keywords indicating UNSURE/AMBIGUOUS response
+    # Keywords for UNSURE (must check after confirmed unavailable/available)
     unsure_keywords = [
         "not sure",
         "i think so",
@@ -218,76 +166,15 @@ def _analyze_transcript(
         "can't find",
     ]
 
-    # Check for unavailable keywords first (higher priority)
-    for keyword in unavailable_keywords:
-        if keyword in lower_transcript:
-            logger.info(f"Found unavailable keyword: '{keyword}'")
-            return VerificationStatus.UNAVAILABLE
-
-    # Check for available keywords
-    for keyword in available_keywords:
-        if keyword in lower_transcript:
-            logger.info(f"Found available keyword: '{keyword}'")
-            return VerificationStatus.AVAILABLE
-
-    # Check for unsure keywords
     for keyword in unsure_keywords:
         if keyword in lower_transcript:
-            logger.info(f"Found unsure keyword: '{keyword}'")
+            logger.info(f"Unsure keyword: '{keyword}' → UNSURE")
             return VerificationStatus.UNSURE
 
-    # Advanced pattern-based analysis for more nuanced responses
-    import re
-
-    # Extract user responses from various transcript formats
-    # Format 1: "user: No." (concatenated transcript from Bland AI)
-    # Format 2: Plain text with user statements
-    user_response_patterns = [
-        r'\buser:\s*["\']?(\w+)["\']?',  # "user: No." or user: Yes
-        r'\b(?:caller|user|prospect|tenant|buyer)(?:\s+(?:said|responded|replied))?\s*["\']?(\w+)["\']?',  # Alternative formats
-    ]
-
-    user_statements = []
-    for pattern in user_response_patterns:
-        matches = re.findall(pattern, lower_transcript)
-        user_statements.extend(matches)
-
-    logger.debug(f"Extracted user statements: {user_statements}")
-
-    # Check simple yes/no responses from user
-    for statement in user_statements:
-        if statement in ["no", "nope", "nope.", "no."]:
-            logger.info(f"Detected 'no' response from user: '{statement}'")
-            return VerificationStatus.UNAVAILABLE
-        elif statement in ["yes", "yes.", "yep", "yep."]:
-            logger.info(f"Detected 'yes' response from user: '{statement}'")
-            return VerificationStatus.AVAILABLE
-
-    # Look for negation patterns (context-aware)
-    negation_patterns = [
-        r"(?:it\'s not|isn\'t|not)\s+(?:available|listed|on the market|for sale)",  # Negated availability
-        r"(?:don\'t have|can\'t find|couldn\'t locate)\s+(?:that|this|the property)",  # Can't locate
-        r"(?:no longer|not anymore|never)\s+(?:available|listed|for sale|for rent)",  # Time-based negation
-    ]
-
-    for pattern in negation_patterns:
-        if re.search(pattern, lower_transcript):
-            logger.info(f"Detected negation pattern: {pattern}")
-            return VerificationStatus.UNAVAILABLE
-
-    # Look for affirmation patterns
-    affirmation_patterns = [
-        r"(?:we still have|we\'re still|we continue to|currently\s+(?:have|list))",  # Present tense availability
-        r"(?:still\s+(?:available|listed|on\s+market))",  # Still available
-    ]
-
-    for pattern in affirmation_patterns:
-        if re.search(pattern, lower_transcript):
-            logger.info(f"Detected affirmation pattern: {pattern}")
-            return VerificationStatus.AVAILABLE
-
-    # If no patterns matched, status is UNSURE
-    logger.info("No clear patterns matched in transcript")
+    # ============================================================================
+    # FALLBACK: No clear indicators
+    # ============================================================================
+    logger.info("No clear patterns matched in transcript → UNSURE")
     return VerificationStatus.UNSURE
 
 
@@ -337,10 +224,59 @@ Is this property still on the market for sale, or has it been sold? Can you give
 
     logger.info(f"Making Bland AI call to {agent_phone} for property {property_id}")
 
-    # ALWAYS use your test phone number for verification calls
-    # This prevents accidental calls to real agent numbers
-    phone_to_call = settings.bland_ai_mock_phone_number
-    logger.info(f"[BLAND_AI] Using test phone number: {phone_to_call} for verification")
+    # ============================================================================
+    # PHONE SELECTION LOGIC (Context-aware)
+    # ============================================================================
+    # Priority:
+    # 1. If running under pytest: ALWAYS use mock phone (safety first)
+    # 2. If MOCK_MODE enabled: use mock phone (dev/staging mode)
+    # 3. Otherwise: use real agent phone from DB (production)
+    # ============================================================================
+
+    is_pytest = "pytest" in sys.modules
+    is_mock_mode = settings.bland_ai_mock_mode
+
+    if is_pytest:
+        # DURING PYTEST: Always use mock phone for absolute safety
+        phone_to_call = settings.bland_ai_mock_phone_number
+        logger.warning(f"[BLAND_AI] 🧪 PYTEST MODE: Using mock phone {phone_to_call}")
+    elif is_mock_mode:
+        # MOCK MODE (production): Use mock phone instead of real agent numbers
+        phone_to_call = settings.bland_ai_mock_phone_number
+        logger.warning(f"[BLAND_AI] 🟡 MOCK MODE: Using mock phone {phone_to_call}")
+    else:
+        # PRODUCTION MODE: Use real agent phone from DB
+        phone_to_call = agent_phone
+        logger.warning(
+            f"[BLAND_AI] 🔴 PRODUCTION MODE: Using agent phone {phone_to_call}"
+        )
+
+    # Final safety validation
+    if is_pytest and phone_to_call != settings.bland_ai_mock_phone_number:
+        logger.error(
+            f"[BLAND_AI] ❌ SAFETY VIOLATION: Pytest detected but "
+            f"not using mock phone! Expected {settings.bland_ai_mock_phone_number}, "
+            f"got {phone_to_call}"
+        )
+        update_property_verification(
+            property_id,
+            VerificationStatus.UNSURE.value,
+            datetime.now(timezone.utc).isoformat(),
+            "Safety check failed - pytest mode but not using mock phone",
+        )
+        return
+
+    if not phone_to_call:
+        logger.error(
+            f"[BLAND_AI] ❌ NO PHONE NUMBER: Cannot make call without valid phone number"
+        )
+        update_property_verification(
+            property_id,
+            VerificationStatus.UNSURE.value,
+            datetime.now(timezone.utc).isoformat(),
+            "No phone number available",
+        )
+        return
 
     # Initiate Bland AI call
     client = get_bland_client()

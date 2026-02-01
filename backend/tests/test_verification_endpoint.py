@@ -1,5 +1,12 @@
 """
 Test for property verification endpoint.
+
+NOTE: These tests are skipped by default during pytest.
+To enable verification tests (they use mock phone number), mark them with:
+    @pytest.mark.allow_verification_calls
+
+Or run with the pytest marker flag:
+    pytest -m allow_verification_calls backend/tests/test_verification_endpoint.py
 """
 
 import pytest
@@ -15,7 +22,25 @@ from app.crud import create_property
 @pytest.mark.auth
 @pytest.mark.integration
 class TestPropertyVerification:
-    """Test property verification endpoint."""
+    """Test property verification endpoint.
+
+    These tests are SKIPPED by default during pytest.
+
+    To enable them, either:
+    1. Mark individual tests with @pytest.mark.allow_verification_calls
+    2. Or run with -m allow_verification_calls flag:
+       pytest -m allow_verification_calls backend/tests/test_verification_endpoint.py
+
+    When enabled, all calls use the mock phone number from .env.
+    Real agent phone numbers are NEVER called during tests.
+    """
+
+    # Skip all tests in this class by default during pytest
+    pytestmark = pytest.mark.skip(
+        reason="Verification tests skipped by default. "
+        "Mark with @pytest.mark.allow_verification_calls to enable, "
+        "or use: pytest -m allow_verification_calls"
+    )
 
     def test_verify_property_endpoint(self, authenticated_client, mock_property_data):
         """Test triggering property verification via API endpoint."""

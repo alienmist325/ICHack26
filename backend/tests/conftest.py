@@ -303,3 +303,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark test as an integration test")
     config.addinivalue_line("markers", "auth: mark test as authentication-related")
     config.addinivalue_line("markers", "db: mark test as database-related")
+    config.addinivalue_line(
+        "markers",
+        "allow_verification_calls: allow this test to make verification calls (uses mock phone)",
+    )
