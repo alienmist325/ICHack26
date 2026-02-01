@@ -1,3 +1,5 @@
+import { House } from "../types";
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface ApiError {
@@ -89,7 +91,7 @@ class ApiClient {
     return this.handleResponse(response);
   }
 
-  async getProperty(id: number): Promise<PropertyResponse> {
+  async getProperty(id: number): Promise<House> {
     const response = await fetch(`${this.baseUrl}/properties/${id}`, {
       method: 'GET',
       headers: {

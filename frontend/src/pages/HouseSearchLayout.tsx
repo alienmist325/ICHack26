@@ -16,7 +16,7 @@ const AppContent = styled.div`
   background: ${colors.lightBg};
   position: relative;
   scroll-behavior: smooth;
-  
+
   /* Smooth scroll for webkit browsers */
   scrollbar-width: thin;
   scrollbar-color: ${colors.teal}40 transparent;
@@ -133,38 +133,29 @@ export function HouseSearchLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
     <>
       <HeaderContainer>
         <LogoAndText>
-          <LeftMoveLogo onClick={() => navigate('/')} />
+          <LeftMoveLogo onClick={() => navigate("/")} />
         </LogoAndText>
 
         <IconsContainer>
-          <IconButton
-            onClick={handleLogout}
-            title="Logout"
-          >
+          <IconButton onClick={handleLogout} title="Logout">
             <FiLogOut />
           </IconButton>
-          <IconButton
-            onClick={() => navigate('/settings')}
-            title="Settings"
-          >
+          <IconButton onClick={() => navigate("/settings")} title="Settings">
             <FiSettings />
           </IconButton>
-          <IconButton
-            onClick={() => navigate('/favorites')}
-            title="Favorites"
-          >
+          <IconButton onClick={() => navigate("/favorites")} title="Favorites">
             <FiHeart />
           </IconButton>
           {user && (
             <AccountIcon
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate("/profile")}
               title={user.email}
             >
               <FiUser />

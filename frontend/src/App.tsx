@@ -9,10 +9,7 @@ import {
   GlobalDataContext,
   useSetupGlobalData,
 } from "./components/hooks/useSetupGlobalData";
-import {
-  ToastContext,
-  useSetupToast,
-} from "./components/hooks/useToast";
+import { ToastContext, useSetupToast } from "./components/hooks/useToast";
 import { ToastList } from "./components/ui/Toast";
 import { AuthContext, useSetupAuth } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -22,6 +19,7 @@ import { HouseSearchLayout } from "./pages/HouseSearchLayout";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FavoritesPage } from "./pages/FavoritesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { HousePage } from "./pages/HousePage";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -56,7 +54,10 @@ function App() {
                   <ProtectedRoute>
                     <AppContainer>
                       <HouseSearchLayout />
-                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                      <ToastList
+                        toasts={toast.toasts}
+                        onRemove={toast.removeToast}
+                      />
                     </AppContainer>
                   </ProtectedRoute>
                 }
@@ -68,7 +69,10 @@ function App() {
                   <ProtectedRoute>
                     <>
                       <ProfilePage />
-                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                      <ToastList
+                        toasts={toast.toasts}
+                        onRemove={toast.removeToast}
+                      />
                     </>
                   </ProtectedRoute>
                 }
@@ -80,7 +84,10 @@ function App() {
                   <ProtectedRoute>
                     <>
                       <FavoritesPage />
-                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                      <ToastList
+                        toasts={toast.toasts}
+                        onRemove={toast.removeToast}
+                      />
                     </>
                   </ProtectedRoute>
                 }
@@ -92,7 +99,25 @@ function App() {
                   <ProtectedRoute>
                     <>
                       <SettingsPage />
-                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                      <ToastList
+                        toasts={toast.toasts}
+                        onRemove={toast.removeToast}
+                      />
+                    </>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/house/:id"
+                element={
+                  <ProtectedRoute>
+                    <>
+                      <HousePage />
+                      <ToastList
+                        toasts={toast.toasts}
+                        onRemove={toast.removeToast}
+                      />
                     </>
                   </ProtectedRoute>
                 }

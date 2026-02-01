@@ -1,11 +1,11 @@
+import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
-import { House } from "../../types";
-import { Button } from "./Button";
-import { colors } from "../../constants";
-import { api } from "../../api/client";
-import { useToast } from "../hooks/useToast";
-import { useNavigate } from "react-router-dom";
+import { House } from "../types";
+import { colors } from "../constants";
+import { api } from "../api/client";
+import { useToast } from "../components/hooks/useToast";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { IoBed } from "react-icons/io5";
 import { GiHouse } from "react-icons/gi";
@@ -30,24 +30,18 @@ export interface HouseCardProps {
   house: House;
 }
 
+const { rightMoveBlue } = colors;
+
 const CardContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 2rem;
   padding: 1.5rem;
-  border-bottom: 1px solid ${colors.borderColor};
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  background-color: ${colors.white};
-  position: relative;
-  border-left: 4px solid transparent;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${colors.lightBg};
-    transform: translateX(4px);
-    border-left-color: ${colors.teal};
-    box-shadow:
-      inset 0 0 0 1px ${colors.borderColor},
-      0 4px 16px ${colors.teal}10;
+    background-color: #f9f9f9;
   }
 `;
 
@@ -56,19 +50,12 @@ const ImageContainer = styled.div`
   width: 250px;
   height: 200px;
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: ${colors.lightBg};
+  background-color: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 24px rgba(73, 223, 181, 0.15);
-  }
 `;
 
 const Image = styled.img`
@@ -80,21 +67,10 @@ const Image = styled.img`
 
 export const PlaceholderIcon = styled.div`
   font-size: 4rem;
-  color: ${colors.teal}40;
+  color: rgba(240, 80, 40, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: pulse 2s ease-in-out infinite;
-
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 0.6;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
 `;
 
 export const CarouselControls = styled.div<{ visible: boolean }>`
@@ -168,7 +144,7 @@ const ContentContainer = styled.div`
 const Title = styled.h2`
   margin: 0;
   font-size: 1.3rem;
-  color: ${colors.darkText};
+  color: #212529;
 `;
 
 const InfoRow = styled.p`
@@ -177,14 +153,14 @@ const InfoRow = styled.p`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${colors.medText};
+  color: #555;
 `;
 
 const Features = styled.ul`
   margin: 0.5rem 0 0 0;
   padding-left: 1.2rem;
   font-size: 0.85rem;
-  color: ${colors.lightText};
+  color: #666;
 `;
 
 const RatingContainer = styled.div`
@@ -193,7 +169,7 @@ const RatingContainer = styled.div`
   gap: 1rem;
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid ${colors.borderColor};
+  border-top: 1px solid #eee;
 `;
 
 const RatingButton = styled.button<{ isActive: boolean }>`
@@ -201,19 +177,17 @@ const RatingButton = styled.button<{ isActive: boolean }>`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid
-    ${(props) => (props.isActive ? colors.teal : colors.borderColor)};
-  background: ${(props) => (props.isActive ? colors.teal : colors.white)};
-  color: ${(props) => (props.isActive ? colors.white : colors.medText)};
+  border: 2px solid ${(props) => (props.isActive ? rightMoveBlue : "#ccc")};
+  background: ${(props) => (props.isActive ? rightMoveBlue : "white")};
+  color: ${(props) => (props.isActive ? "white" : "#666")};
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${colors.teal};
-    background: ${(props) => (props.isActive ? colors.teal : colors.lightBg)};
-    transform: translateY(-2px);
+    border-color: ${rightMoveBlue};
+    background: ${(props) => (props.isActive ? rightMoveBlue : "white")};
   }
 
   &:disabled {
@@ -228,7 +202,7 @@ const RatingButton = styled.button<{ isActive: boolean }>`
 
 const ScoreDisplay = styled.span`
   font-size: 0.85rem;
-  color: ${colors.lightText};
+  color: #666;
   margin-left: 0.5rem;
 `;
 
@@ -238,7 +212,7 @@ const ActionBar = styled.div`
   gap: 1rem;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid ${colors.borderColor};
+  border-top: 1px solid #eee;
   flex-wrap: wrap;
 `;
 
@@ -247,20 +221,17 @@ const StarButton = styled.button<{ isBookmarked: boolean }>`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid
-    ${(props) => (props.isBookmarked ? colors.teal : colors.borderColor)};
-  background: ${(props) =>
-    props.isBookmarked ? `${colors.teal}15` : colors.white};
-  color: ${(props) => (props.isBookmarked ? colors.teal : colors.medText)};
+  border: 2px solid ${(props) => (props.isBookmarked ? "#FFD700" : "#ccc")};
+  background: ${(props) => (props.isBookmarked ? "#fffbf0" : "white")};
+  color: ${(props) => (props.isBookmarked ? "#FFD700" : "#666")};
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${colors.teal};
-    background: ${`${colors.teal}15`};
-    transform: translateY(-2px);
+    border-color: #ffd700;
+    background: #fffbf0;
   }
 
   &:disabled {
@@ -271,22 +242,22 @@ const StarButton = styled.button<{ isBookmarked: boolean }>`
 
 const StatusSelect = styled.select`
   padding: 0.4rem 0.8rem;
-  border: 2px solid ${colors.borderColor};
+  border: 2px solid #ccc;
   border-radius: 20px;
-  background: ${colors.white};
-  color: ${colors.medText};
+  background: white;
+  color: #666;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${colors.teal};
+    border-color: ${rightMoveBlue};
   }
 
   &:focus {
     outline: none;
-    border-color: ${colors.teal};
-    box-shadow: 0 0 0 2px ${colors.teal}20;
+    border-color: ${rightMoveBlue};
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
   }
 
   &:disabled {
@@ -298,7 +269,7 @@ const StatusSelect = styled.select`
 const CommentsSection = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid ${colors.borderColor};
+  border-top: 1px solid #eee;
 `;
 
 const CommentsButton = styled.button`
@@ -306,18 +277,17 @@ const CommentsButton = styled.button`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid ${colors.borderColor};
-  background: ${colors.white};
-  color: ${colors.medText};
+  border: 2px solid #ccc;
+  background: white;
+  color: #666;
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${colors.teal};
-    color: ${colors.teal};
-    transform: translateY(-2px);
+    border-color: ${rightMoveBlue};
+    color: ${rightMoveBlue};
   }
 
   &:disabled {
@@ -328,14 +298,40 @@ const CommentsButton = styled.button`
 
 const CommentCount = styled.span`
   font-size: 0.8rem;
-  color: ${colors.lightText};
+  color: #999;
   margin-left: 0.3rem;
 `;
 
 type PropertyStatus = "interested" | "viewing" | "offer" | "accepted" | null;
 
-export function HouseCard(props: HouseCardProps) {
-  const { house } = props;
+export function HousePage() {
+  // const handleNavigation = (path: string) => {
+  //   navigate(path);
+  // };
+
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  // const { currentHouse } = useGlobalData();
+
+  const [currentHouse, setCurrentHouse] = useState<House | undefined>(
+    undefined
+  );
+
+  const params = useParams<{ id: string }>();
+
+  useEffect(() => {
+    const id = params.id ? parseInt(params.id) : undefined;
+    if (!id) return;
+    api.getProperty(id).then((value) => {
+      setCurrentHouse(value as House);
+    });
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   const { addToast } = useToast();
   const [isHovering, setIsHovering] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -349,7 +345,10 @@ export function HouseCard(props: HouseCardProps) {
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
 
-  const images = house.images && house.images.length > 0 ? house.images : [];
+  const images =
+    currentHouse?.images && currentHouse?.images.length > 0
+      ? currentHouse?.images
+      : [];
   const hasImages = images.length > 0;
 
   // Auto-cycle images on hover
@@ -391,9 +390,10 @@ export function HouseCard(props: HouseCardProps) {
   };
 
   const handleVote = async (voteType: "upvote" | "downvote") => {
+    if (!currentHouse) return;
     setIsVoting(true);
     try {
-      await api.postRating(house.id, voteType);
+      await api.postRating(currentHouse.id, voteType);
       setUserVote(voteType);
 
       // Show toast notification
@@ -411,14 +411,15 @@ export function HouseCard(props: HouseCardProps) {
   };
 
   const handleToggleBookmark = async () => {
+    if (!currentHouse) return;
     setIsVoting(true);
     try {
       if (isBookmarked) {
-        await api.unstarProperty(house.id);
+        await api.unstarProperty(currentHouse.id);
         setIsBookmarked(false);
         addToast("Removed from bookmarks", "success", 2000);
       } else {
-        await api.starProperty(house.id);
+        await api.starProperty(currentHouse.id);
         setIsBookmarked(true);
         addToast("Added to bookmarks", "success", 2000);
       }
@@ -431,10 +432,11 @@ export function HouseCard(props: HouseCardProps) {
   };
 
   const handleStatusChange = async (status: PropertyStatus) => {
+    if (!currentHouse) return;
     setIsUpdatingStatus(true);
     try {
       if (status) {
-        await api.setPropertyStatus(house.id, status);
+        await api.setPropertyStatus(currentHouse.id, status);
       }
       setPropertyStatus(status);
       const statusText = status
@@ -450,17 +452,11 @@ export function HouseCard(props: HouseCardProps) {
   };
 
   const getPropertyIcon = () => {
-    const type = house.property_type?.toLowerCase() || "";
+    const type = currentHouse?.property_type?.toLowerCase() || "";
     if (type.includes("flat") || type.includes("apartment")) {
       return <FiBox />;
     }
     return <FiHome />;
-  };
-
-  const navigate = useNavigate();
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
   };
 
   return (
@@ -473,7 +469,7 @@ export function HouseCard(props: HouseCardProps) {
           <>
             <Image
               src={images[currentImageIndex]}
-              alt={`${house.listingTitle} - Image ${currentImageIndex + 1}`}
+              alt={`${currentHouse?.listingTitle} - Image ${currentImageIndex + 1}`}
             />
             <CarouselControls visible={isHovering}>
               <ArrowButton onClick={handlePreviousImage}>
@@ -495,22 +491,48 @@ export function HouseCard(props: HouseCardProps) {
       </ImageContainer>
 
       <ContentContainer>
-        <Title>{house.listingTitle}</Title>
+        <Title>{currentHouse?.listingTitle}</Title>
 
         <InfoRow>
           <GiHouse /> <strong>Address:</strong>{" "}
-          {house.full_address || house.address}
+          {currentHouse?.full_address || currentHouse?.address}
           <div> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </div>
           <FaMoneyBillAlt /> <strong>Price:</strong> £
-          {house.price.toLocaleString()}
+          {currentHouse?.price.toLocaleString()}
         </InfoRow>
 
-        <Button
-          onClick={() => handleNavigation(`/house/${house.id}`)}
-          style={{ color: "#000000ff", backgroundColor: "#49dfb5" }}
-        >
-          View more details
-        </Button>
+        {currentHouse?.bedrooms !== undefined &&
+          currentHouse?.bathrooms !== undefined && (
+            <InfoRow>
+              <IoBed /> <strong>Bedrooms:</strong> {currentHouse?.bedrooms}
+              <div> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </div>
+              <FaToiletPaper /> <strong>Bathrooms:</strong>{" "}
+              {currentHouse?.bathrooms}
+            </InfoRow>
+          )}
+
+        {currentHouse?.bedrooms !== undefined &&
+          currentHouse?.bathrooms === undefined && (
+            <InfoRow>
+              <IoBed /> <strong>Bedrooms:</strong> {currentHouse?.bedrooms}
+            </InfoRow>
+          )}
+
+        {currentHouse?.bathrooms !== undefined &&
+          currentHouse?.bedrooms === undefined && (
+            <InfoRow>
+              <FaToiletPaper /> <strong>Bathrooms:</strong>{" "}
+              {currentHouse?.bathrooms}
+            </InfoRow>
+          )}
+
+        {currentHouse?.features && currentHouse?.features.length > 0 && (
+          <Features>
+            {currentHouse?.features.map((feature, index) => (
+              <li key={index}>{feature}</li>
+            ))}
+          </Features>
+        )}
 
         <RatingContainer>
           <RatingButton
@@ -541,10 +563,55 @@ export function HouseCard(props: HouseCardProps) {
             <span>Gone</span>
           </RatingButton>
 
-          {house.score !== undefined && (
-            <ScoreDisplay>Score: {house.score.toFixed(1)}</ScoreDisplay>
+          {currentHouse?.score !== undefined && (
+            <ScoreDisplay>Score: {currentHouse?.score.toFixed(1)}</ScoreDisplay>
           )}
         </RatingContainer>
+
+        <ActionBar>
+          <StarButton
+            isBookmarked={isBookmarked}
+            onClick={handleToggleBookmark}
+            disabled={isVoting}
+            title="Add to bookmarks"
+          >
+            {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
+            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+          </StarButton>
+
+          <StatusSelect
+            value={propertyStatus || ""}
+            onChange={(e) =>
+              handleStatusChange((e.target.value as PropertyStatus) || null)
+            }
+            disabled={isUpdatingStatus}
+            title="Track your property status"
+          >
+            <option value="">Set Status...</option>
+            <option value="interested">Interested</option>
+            <option value="viewing">Viewing Scheduled</option>
+            <option value="offer">Made Offer</option>
+            <option value="accepted">Offer Accepted</option>
+          </StatusSelect>
+
+          <CommentsButton
+            onClick={() => setShowComments(!showComments)}
+            title="View and add comments"
+          >
+            <FiMessageCircle size={16} />
+            <span>Comments</span>
+            <CommentCount>({commentCount})</CommentCount>
+          </CommentsButton>
+        </ActionBar>
+
+        {showComments && (
+          <CommentsSection>
+            <p style={{ color: "#999", fontSize: "0.9rem" }}>
+              Comments feature coming soon! This property has {commentCount}{" "}
+              comments.
+            </p>
+          </CommentsSection>
+        )}
       </ContentContainer>
     </CardContainer>
   );

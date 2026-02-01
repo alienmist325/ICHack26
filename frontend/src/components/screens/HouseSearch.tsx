@@ -5,6 +5,7 @@ import { FilterPane } from "../layout/FilterPane";
 import { Pagination } from "../layout/Pagination";
 import { LoadingCard } from "../layout/LoadingCard";
 import { colors, spacing } from "../../constants";
+import { Button } from "../layout/Button";
 
 const ContentArea = styled.div`
   flex: 1;
@@ -67,7 +68,8 @@ const ListWrapper = styled.div`
 `;
 
 export function HouseSearch() {
-  const { houses, totalCount, currentPage, setCurrentPage, isLoading } = useGlobalData();
+  const { houses, totalCount, currentPage, setCurrentPage, isLoading } =
+    useGlobalData();
 
   const PAGE_SIZE = 10;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
