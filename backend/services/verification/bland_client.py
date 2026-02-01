@@ -153,10 +153,22 @@ _client: Optional[BlandAIClient] = None
 
 
 def get_bland_client() -> BlandAIClient:
-    """Get or create the Bland AI client singleton."""
+    """Get or create the Bland AI client singleton.
+
+    Returns MockBlandAIClient if BLAND_AI_MOCK_MODE is enabled,
+    otherwise returns the real BlandAIClient.
+    """
     global _client
     if _client is None:
-        _client = BlandAIClient(
-            timeout_seconds=settings.bland_ai_timeout_seconds,
-        )
+        if settings.bland_ai_mock_mode:
+            logger.info("[MOCK] Using MockBlandAIClient for testing")
+            from backend.services.verification.mock_client import MockBlandAIClient
+
+            _client = MockBlandAIClient(
+                timeout_seconds=settings.bland_ai_timeout_seconds,
+            )
+        else:
+            _client = BlandAIClient(
+                timeout_seconds=settings.bland_ai_timeout_seconds,
+            )
     return _client

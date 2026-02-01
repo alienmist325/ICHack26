@@ -64,6 +64,14 @@ class Settings(BaseSettings):
         default=120,
         description="Timeout for Bland AI calls in seconds",
     )
+    bland_ai_mock_mode: bool = Field(
+        default=False,
+        description="Enable mock Bland AI client for testing (no real API calls, must be explicitly enabled)",
+    )
+    bland_ai_mock_phone_number: Optional[str] = Field(
+        default="+44 7580 574377",
+        description="Phone number to call in mock mode (your personal number for testing)",
+    )
 
     model_config = ConfigDict(
         env_file=".env",

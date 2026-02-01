@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from backend.app.crud import get_property_by_id, update_property_verification
+from backend.config import settings
 from backend.services.verification.bland_client import get_bland_client
 from backend.services.verification.models import VerificationStatus
 
@@ -128,9 +129,18 @@ async def _verify_property_async(property_id: int) -> None:
 
     logger.info(f"Making Bland AI call to {agent_phone} for property {property_id}")
 
+    # Use mock phone number if in mock mode
+    if settings.bland_ai_mock_mode:
+        phone_to_call = settings.bland_ai_mock_phone_number
+        logger.info(
+            f"[MOCK] Using test phone number: {phone_to_call} instead of agent phone"
+        )
+    else:
+        phone_to_call = agent_phone
+
     # Initiate Bland AI call
     client = get_bland_client()
-    call_id = client.make_call(agent_phone, task)
+    call_id = client.make_call(phone_to_call, task)
 
     if not call_id:
         logger.error(f"Failed to initiate Bland AI call for property {property_id}")
