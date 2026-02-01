@@ -126,6 +126,16 @@ class ProxyConfig(BaseModel):
     useApifyProxy: bool = Field(
         default=True, description="Whether to use Apify's proxy service"
     )
+    url: str = Field(default="", description="Proxy URL (if not using Apify proxy)")
+    username: str = Field(
+        default="", description="Proxy username (if authentication required)"
+    )
+    password: str = Field(
+        default="", description="Proxy password (if authentication required)"
+    )
+    country: str = Field(
+        default="", description="Proxy country (for country-specific proxies)"
+    )
 
 
 class RightmoveScraperInput(BaseModel):
