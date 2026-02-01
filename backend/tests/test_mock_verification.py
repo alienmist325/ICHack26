@@ -1,15 +1,8 @@
 """Integration tests for mock Bland AI client with verification flow."""
 
-import asyncio
-import os
-import time
-
 import pytest
 
-from backend.app.database import get_db
-from backend.app.main import app
 from backend.config import settings
-from backend.services.verification.service import _verify_property_async
 
 
 def test_mock_client_basic_flow():

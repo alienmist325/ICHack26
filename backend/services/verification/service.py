@@ -268,7 +268,7 @@ Is this property still on the market for sale, or has it been sold? Can you give
 
     if not phone_to_call:
         logger.error(
-            f"[BLAND_AI] ❌ NO PHONE NUMBER: Cannot make call without valid phone number"
+            "[BLAND_AI] ❌ NO PHONE NUMBER: Cannot make call without valid phone number"
         )
         update_property_verification(
             property_id,

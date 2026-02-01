@@ -1,6 +1,5 @@
 """Bland AI API client for making phone calls to verify properties."""
 
-import asyncio
 import logging
 import sys
 import time
@@ -9,7 +8,7 @@ from typing import Optional
 import requests
 
 from backend.config import settings
-from backend.services.verification.models import BlandCallResponse, BlandCallResult
+from backend.services.verification.models import BlandCallResult
 
 logger = logging.getLogger(__name__)
 

@@ -18,8 +18,6 @@ from app.schemas import (
     PropertyStatusUpdate,
     User,
 )
-from app.routers.auth import get_current_user
-from app.schemas import User
 from backend.services.verification import verify_property
 
 logger = logging.getLogger(__name__)
@@ -333,7 +331,7 @@ async def trigger_property_verification(
     # Safety guard: skip verification during pytest
     if "pytest" in sys.modules:
         logger.warning(
-            f"[VERIFICATION] 🧪 Pytest detected - verification call skipped for safety"
+            "[VERIFICATION] 🧪 Pytest detected - verification call skipped for safety"
         )
         return {
             "property_id": property_id,
