@@ -109,21 +109,34 @@ def _analyze_transcript(
             logger.info(f"Found unsure keyword: '{keyword}'")
             return VerificationStatus.UNSURE
 
-    # Handle standalone "no" or "nope" responses (likely unavailable)
+    # Advanced pattern-based analysis for more nuanced responses
     import re
 
-    # Look for "no" at start of human response or as standalone word
-    if re.search(r'\bhuman[:\s]+["\']?(?:no|nope)["\']?', lower_transcript):
-        logger.info("Detected 'no' response from human - property likely unavailable")
-        return VerificationStatus.UNAVAILABLE
+    # Look for negation patterns (more context-aware)
+    negation_patterns = [
+        r'\bhuman[:\s]+["\']?(?:no|nope)["\']?',  # Simple no/nope from human
+        r"(?:it\'s not|isn\'t|not)\s+(?:available|listed|on the market)",  # Negated availability
+        r"(?:don\'t have|can\'t find|couldn\'t locate)\s+(?:that|this|the property)",  # Can't locate
+    ]
 
-    # Handle standalone "yes" responses
-    if re.search(r'\bhuman[:\s]+["\']?yes["\']?', lower_transcript):
-        logger.info("Detected 'yes' response from human - property likely available")
-        return VerificationStatus.AVAILABLE
+    for pattern in negation_patterns:
+        if re.search(pattern, lower_transcript):
+            logger.info(f"Detected negation pattern: {pattern}")
+            return VerificationStatus.UNAVAILABLE
 
-    # If no keywords matched, status is UNSURE
-    logger.info("No clear keywords matched in transcript")
+    # Look for affirmation patterns
+    affirmation_patterns = [
+        r'\bhuman[:\s]+["\']?yes["\']?',  # Simple yes from human
+        r"(?:we still have|we\'re still|we continue to|currently)",  # Present tense availability
+    ]
+
+    for pattern in affirmation_patterns:
+        if re.search(pattern, lower_transcript):
+            logger.info(f"Detected affirmation pattern: {pattern}")
+            return VerificationStatus.AVAILABLE
+
+    # If no patterns matched, status is UNSURE
+    logger.info("No clear patterns matched in transcript")
     return VerificationStatus.UNSURE
 
 
@@ -160,13 +173,16 @@ async def _verify_property_async(property_id: int) -> None:
         return
 
     # Build task prompt based on listing type
+    # Use more natural, conversational prompts that agents will engage with
     listing_type = property_obj.listing_type or "sale"
     full_address = property_obj.full_address or "the property"
 
     if listing_type.lower() == "rent":
-        task = f"Hi, I'm calling to check if {full_address} is still available for rent. Can you confirm if this property is still listed and available? Please just say yes or no."
+        task = f"""Hi, I'm calling on behalf of a prospective tenant. I wanted to check on the status of {full_address}. 
+Is this property still available for rent, or has it been let already? What's the current status?"""
     else:
-        task = f"Hi, I'm calling to check if {full_address} is still available for sale. Can you confirm if this property is still on the market? Please just say yes or no."
+        task = f"""Hi, I'm calling on behalf of a prospective buyer. I wanted to inquire about {full_address}. 
+Is this property still on the market for sale, or has it been sold? Can you give me an update on its status?"""
 
     logger.info(f"Making Bland AI call to {agent_phone} for property {property_id}")
 
