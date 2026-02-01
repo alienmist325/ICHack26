@@ -12,6 +12,8 @@ from app.schemas import (
     DistanceRequest,
     DistanceResponse,
     DistanceResult,
+    GeocodeRequest,
+    GeocodeResponse,
     IsochroneRequest,
     IsochroneResponse,
     Property,
@@ -28,6 +30,7 @@ from app.schemas import (
 from backend.models.rightmove import RightmoveScraperInput
 from backend.scraper.scrape import scrape_rightmove
 from app.routers import auth, users, properties, viewings, shared_feeds, personalization
+from backend.services.geocoding_service import GeocodingService
 from backend.services.routing_service import (
     RoutingService,
     properties_in_polygon,
@@ -39,6 +42,7 @@ logger = logging.getLogger(__name__)
 # Global state for routing service (initialized in lifespan)
 # ============================================================================
 _routing_service: Optional[RoutingService] = None
+_geocoding_service: Optional[GeocodingService] = None
 
 
 def get_routing_service_dep() -> RoutingService:
@@ -62,17 +66,43 @@ def get_routing_service_dep() -> RoutingService:
     return _routing_service
 
 
+def get_geocoding_service_dep() -> GeocodingService:
+    """
+    Dependency for accessing the geocoding service instance.
+
+    Used with FastAPI's Depends() to inject the geocoding service into endpoints.
+    Ensures the service is properly initialized before use.
+
+    Raises:
+        RuntimeError: If geocoding service was not initialized during app startup
+
+    Returns:
+        GeocodingService: The initialized geocoding service instance
+    """
+    if _geocoding_service is None:
+        raise RuntimeError(
+            "Geocoding service not initialized. "
+            "This should not happen if the app started correctly."
+        )
+    return _geocoding_service
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize database and routing service
     global _routing_service
+    global _geocoding_service
     init_db()
     _routing_service = RoutingService()
+    _geocoding_service = GeocodingService()
     logger.info("Routing service initialized at app startup")
+    logger.info("Geocoding service initialized at app startup")
     yield
     # Shutdown: Clean up
     _routing_service = None
+    _geocoding_service = None
     logger.info("Routing service shutdown")
+    logger.info("Geocoding service shutdown")
 
 
 app = FastAPI(
@@ -732,3 +762,73 @@ async def get_distances_endpoint(
     except Exception as e:
         logger.error(f"Failed to compute distances: {str(e)}", exc_info=True)
         raise HTTPException(status_code=503, detail="Routing service unavailable")
+
+
+@app.post("/routing/geocode", response_model=GeocodeResponse)
+async def geocode_address(
+    request: GeocodeRequest,
+    geocoding_service: GeocodingService = Depends(get_geocoding_service_dep),
+):
+    """
+    Geocode an address string to latitude/longitude coordinates.
+
+    Accepts any address format:
+    - Street addresses: "123 Main Street, London, UK"
+    - Postcodes: "SW1A 1AA"
+    - Place names: "Tower Bridge, London"
+    - Partial addresses: "Oxford Street, London"
+
+    Uses a lenient approach: returns the top/best match even if confidence
+    is lower, rather than failing for ambiguous addresses.
+
+    Args:
+        request: GeocodeRequest with address string
+
+    Returns:
+        GeocodeResponse with latitude, longitude, and echo of input address
+
+    Raises:
+        HTTPException 400: If address is empty or invalid
+        HTTPException 404: If address cannot be geocoded (no results found)
+        HTTPException 503: If geocoding service is unavailable
+    """
+    try:
+        # Validate request
+        if not request.address or not request.address.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Address cannot be empty",
+            )
+
+        logger.info(f"Geocoding address: '{request.address}'")
+
+        # Call geocoding service
+        coordinates = geocoding_service.geocode_address(request.address)
+
+        if coordinates is None:
+            logger.warning(f"No geocoding results found for: '{request.address}'")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Could not geocode address: '{request.address}'",
+            )
+
+        latitude, longitude = coordinates
+
+        logger.info(
+            f"Successfully geocoded '{request.address}' to ({latitude}, {longitude})"
+        )
+
+        return GeocodeResponse(
+            latitude=latitude,
+            longitude=longitude,
+            address=request.address,
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"Invalid request: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to geocode address: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Geocoding service unavailable")

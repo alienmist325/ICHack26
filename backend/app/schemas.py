@@ -455,3 +455,22 @@ class DistanceResponse(BaseModel):
     origin_lat: float
     origin_lon: float
     results: List[DistanceResult]
+
+
+# ============================================================================
+# Geocoding Service Schemas
+# ============================================================================
+
+
+class GeocodeRequest(BaseModel):
+    """Request to geocode an address to coordinates."""
+
+    address: str  # Address string in any format
+
+
+class GeocodeResponse(BaseModel):
+    """Response with geocoded coordinates."""
+
+    latitude: float
+    longitude: float
+    address: str  # Echo back the input address
