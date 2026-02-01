@@ -204,6 +204,12 @@ async def scrape_and_store(config: RightmoveScraperInput) -> Dict[str, int]:
     help="Email address for notifications (optional).",
 )
 @click.option(
+    "--disable-apify-proxy",
+    is_flag=True,
+    default=False,
+    help="Disable Apify's proxy service (use custom proxy or no proxy).",
+)
+@click.option(
     "--proxy-url",
     default=None,
     help="Proxy URL (overrides .env PROXY_URL if set).",
@@ -235,6 +241,7 @@ def main(
     enable_delisting_tracker: bool,
     add_empty_tracker_record: bool,
     email: str,
+    disable_apify_proxy: bool,
     proxy_url: Optional[str],
     proxy_username: Optional[str],
     proxy_password: Optional[str],
@@ -265,7 +272,10 @@ def main(
             sys.exit(1)
 
         # Build proxy configuration (combine .env and CLI overrides)
+        # If --disable-apify-proxy is set, useApifyProxy will be False
+        # Otherwise it defaults to True
         proxy_config = ProxyConfig(
+            useApifyProxy=not disable_apify_proxy,
             url=proxy_url or settings.proxy_url or "",
             username=proxy_username or settings.proxy_username or "",
             password=proxy_password or settings.proxy_password or "",
