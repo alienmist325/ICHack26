@@ -4,6 +4,7 @@ import { HouseCard } from "../layout/HouseCard";
 import { FilterPane } from "../layout/FilterPane";
 import { Pagination } from "../layout/Pagination";
 import { LoadingCard } from "../layout/LoadingCard";
+import { colors, spacing } from "../../constants";
 
 const ContentArea = styled.div`
   flex: 1;
@@ -18,6 +19,18 @@ const BottomRightCorner = styled.div`
   right: 0;
   bottom: 0;
   margin: 0.75rem;
+`;
+
+const EmptyState = styled.div`
+  padding: 3rem 2rem;
+  text-align: center;
+  color: ${colors.lightText};
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
 `;
 
 const VerticalList = styled.div`
@@ -77,9 +90,10 @@ export function HouseSearch() {
                   <HouseCard key={house.id} house={house} />
                 ))
               ) : (
-                <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
-                  No properties found. Try adjusting your filters.
-                </div>
+                <EmptyState>
+                  🔍
+                  <p>No properties found. Try adjusting your filters.</p>
+                </EmptyState>
               )}
             </VerticalList>
           </ListWrapper>

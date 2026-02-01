@@ -24,11 +24,14 @@ const CardContainer = styled.div`
   align-items: center;
   gap: 2rem;
   padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid ${colors.borderColor};
+  transition: all 0.3s ease;
+  background-color: ${colors.white};
 
   &:hover {
-    background-color: #f9f9f9;
+    background-color: ${colors.lightBg};
+    transform: translateX(4px);
+    box-shadow: inset 0 0 0 1px ${colors.borderColor};
   }
 `;
 
@@ -37,12 +40,19 @@ const ImageContainer = styled.div`
   width: 250px;
   height: 200px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: #f0f0f0;
+  background-color: ${colors.lightBg};
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(73, 223, 181, 0.15);
+  }
 `;
 
 const Image = styled.img`
@@ -54,10 +64,20 @@ const Image = styled.img`
 
 const PlaceholderIcon = styled.div`
   font-size: 4rem;
-  color: rgba(240, 80, 40, 0.3);
+  color: ${colors.teal}40;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: pulse 2s ease-in-out infinite;
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
 `;
 
 const CarouselControls = styled.div<{ visible: boolean }>`
@@ -118,7 +138,7 @@ const ContentContainer = styled.div`
 const Title = styled.h2`
   margin: 0;
   font-size: 1.3rem;
-  color: #212529;
+  color: ${colors.darkText};
 `;
 
 const InfoRow = styled.p`
@@ -127,14 +147,14 @@ const InfoRow = styled.p`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #555;
+  color: ${colors.medText};
 `;
 
 const Features = styled.ul`
   margin: 0.5rem 0 0 0;
   padding-left: 1.2rem;
   font-size: 0.85rem;
-  color: #666;
+  color: ${colors.lightText};
 `;
 
 const RatingContainer = styled.div`
@@ -143,7 +163,7 @@ const RatingContainer = styled.div`
   gap: 1rem;
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid ${colors.borderColor};
 `;
 
 const RatingButton = styled.button<{ isActive: boolean }>`
@@ -151,17 +171,18 @@ const RatingButton = styled.button<{ isActive: boolean }>`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid ${(props) => (props.isActive ? colors.rightMoveBlue : "#ccc")};
-  background: ${(props) => (props.isActive ? colors.rightMoveBlue : "white")};
-  color: ${(props) => (props.isActive ? "white" : "#666")};
+  border: 2px solid ${(props) => (props.isActive ? colors.teal : colors.borderColor)};
+  background: ${(props) => (props.isActive ? colors.teal : colors.white)};
+  color: ${(props) => (props.isActive ? colors.white : colors.medText)};
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 
   &:hover {
-    border-color: ${colors.rightMoveBlue};
-    background: ${(props) => (props.isActive ? colors.rightMoveBlue : "white")};
+    border-color: ${colors.teal};
+    background: ${(props) => (props.isActive ? colors.teal : colors.lightBg)};
+    transform: translateY(-2px);
   }
 
   &:disabled {
@@ -176,7 +197,7 @@ const RatingButton = styled.button<{ isActive: boolean }>`
 
 const ScoreDisplay = styled.span`
   font-size: 0.85rem;
-  color: #666;
+  color: ${colors.lightText};
   margin-left: 0.5rem;
 `;
 
@@ -186,7 +207,7 @@ const ActionBar = styled.div`
   gap: 1rem;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid ${colors.borderColor};
   flex-wrap: wrap;
 `;
 
@@ -195,17 +216,18 @@ const StarButton = styled.button<{ isBookmarked: boolean }>`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid ${(props) => (props.isBookmarked ? "#FFD700" : "#ccc")};
-  background: ${(props) => (props.isBookmarked ? "#fffbf0" : "white")};
-  color: ${(props) => (props.isBookmarked ? "#FFD700" : "#666")};
+  border: 2px solid ${(props) => (props.isBookmarked ? colors.teal : colors.borderColor)};
+  background: ${(props) => (props.isBookmarked ? `${colors.teal}15` : colors.white)};
+  color: ${(props) => (props.isBookmarked ? colors.teal : colors.medText)};
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 
   &:hover {
-    border-color: #FFD700;
-    background: #fffbf0;
+    border-color: ${colors.teal};
+    background: ${`${colors.teal}15`};
+    transform: translateY(-2px);
   }
 
   &:disabled {
@@ -216,22 +238,22 @@ const StarButton = styled.button<{ isBookmarked: boolean }>`
 
 const StatusSelect = styled.select`
   padding: 0.4rem 0.8rem;
-  border: 2px solid #ccc;
+  border: 2px solid ${colors.borderColor};
   border-radius: 20px;
-  background: white;
-  color: #666;
+  background: ${colors.white};
+  color: ${colors.medText};
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 
   &:hover {
-    border-color: ${colors.rightMoveBlue};
+    border-color: ${colors.teal};
   }
 
   &:focus {
     outline: none;
-    border-color: ${colors.rightMoveBlue};
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    border-color: ${colors.teal};
+    box-shadow: 0 0 0 2px ${colors.teal}20;
   }
 
   &:disabled {
@@ -243,7 +265,7 @@ const StatusSelect = styled.select`
 const CommentsSection = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid ${colors.borderColor};
 `;
 
 const CommentsButton = styled.button`
@@ -251,17 +273,18 @@ const CommentsButton = styled.button`
   align-items: center;
   gap: 0.3rem;
   padding: 0.4rem 0.8rem;
-  border: 2px solid #ccc;
-  background: white;
-  color: #666;
+  border: 2px solid ${colors.borderColor};
+  background: ${colors.white};
+  color: ${colors.medText};
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 
   &:hover {
-    border-color: ${colors.rightMoveBlue};
-    color: ${colors.rightMoveBlue};
+    border-color: ${colors.teal};
+    color: ${colors.teal};
+    transform: translateY(-2px);
   }
 
   &:disabled {
@@ -272,7 +295,7 @@ const CommentsButton = styled.button`
 
 const CommentCount = styled.span`
   font-size: 0.8rem;
-  color: #999;
+  color: ${colors.lightText};
   margin-left: 0.3rem;
 `;
 
@@ -521,7 +544,7 @@ export function HouseCard(props: HouseCardProps) {
 
         {showComments && (
           <CommentsSection>
-            <p style={{ color: "#999", fontSize: "0.9rem" }}>
+            <p style={{ color: colors.lightText, fontSize: "0.9rem" }}>
               Comments feature coming soon! This property has {commentCount} comments.
             </p>
           </CommentsSection>
