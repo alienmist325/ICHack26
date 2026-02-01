@@ -9,8 +9,7 @@ import sqlite3
 from app.database import get_db
 from app.schemas import (
     User,
-    UserProfile,
-    UserProfileResponse,
+    UserResponse,
     NotificationSettings,
 )
 from app.routers.auth import get_current_user
@@ -18,23 +17,23 @@ from app.routers.auth import get_current_user
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/profile", response_model=UserProfileResponse)
-async def get_user_profile(
+@router.get("/", response_model=UserResponse)
+async def get_user(
     current_user: User = Depends(get_current_user),
     db: sqlite3.Connection = Depends(get_db),
 ):
-    """Get current user's profile and preferences."""
+    """Get current user's preferences."""
     cursor = db.cursor()
     cursor.execute(
         """
-        SELECT id, user_id, bio, dream_property_description,
+        SELECT id, email, is_active, bio, dream_property_description,
                preferred_price_min, preferred_price_max, preferred_bedrooms_min,
                preferred_property_types, preferred_locations,
                notification_viewing_reminder_days, notification_email_enabled,
                notification_in_app_enabled, notification_feed_changes_enabled,
                created_at, updated_at
-        FROM user_profiles
-        WHERE user_id = ?
+        FROM users
+        WHERE id = ?
         """,
         (current_user.id,),
     )
@@ -52,12 +51,12 @@ async def get_user_profile(
     if row_dict.get("preferred_locations"):
         row_dict["preferred_locations"] = json.loads(row_dict["preferred_locations"])
 
-    return UserProfileResponse(**row_dict)
+    return UserResponse(**row_dict)
 
 
-@router.put("/profile", response_model=UserProfileResponse)
-async def update_user_profile(
-    profile_data: UserProfile,
+@router.put("/", response_model=UserResponse)
+async def update_user(
+    user_data: User,
     current_user: User = Depends(get_current_user),
     db: sqlite3.Connection = Depends(get_db),
 ):
@@ -66,33 +65,45 @@ async def update_user_profile(
 
     # Prepare updates
     updates = {}
-    if profile_data.bio is not None:
-        updates["bio"] = profile_data.bio
-    if profile_data.dream_property_description is not None:
-        updates["dream_property_description"] = profile_data.dream_property_description
-    if profile_data.preferred_price_min is not None:
-        updates["preferred_price_min"] = profile_data.preferred_price_min
-    if profile_data.preferred_price_max is not None:
-        updates["preferred_price_max"] = profile_data.preferred_price_max
-    if profile_data.preferred_bedrooms_min is not None:
-        updates["preferred_bedrooms_min"] = profile_data.preferred_bedrooms_min
-    if profile_data.preferred_property_types is not None:
+    if user_data.bio is not None:
+        updates["bio"] = user_data.bio
+    if user_data.dream_property_description is not None:
+        updates["dream_property_description"] = user_data.dream_property_description
+    if user_data.preferred_price_min is not None:
+        updates["preferred_price_min"] = user_data.preferred_price_min
+    if user_data.preferred_price_max is not None:
+        updates["preferred_price_max"] = user_data.preferred_price_max
+    if user_data.preferred_bedrooms_min is not None:
+        updates["preferred_bedrooms_min"] = user_data.preferred_bedrooms_min
+    if user_data.preferred_property_types is not None:
         updates["preferred_property_types"] = json.dumps(
-            profile_data.preferred_property_types
+            user_data.preferred_property_types
         )
-    if profile_data.preferred_locations is not None:
-        updates["preferred_locations"] = json.dumps(profile_data.preferred_locations)
+    if user_data.preferred_locations is not None:
+        updates["preferred_locations"] = json.dumps(user_data.preferred_locations)
+    if user_data.notification_viewing_reminder_days is not None:
+        updates["notification_viewing_reminder_days"] = (
+            user_data.notification_viewing_reminder_days
+        )
+    if user_data.notification_email_enabled is not None:
+        updates["notification_email_enabled"] = user_data.notification_email_enabled
+    if user_data.notification_in_app_enabled is not None:
+        updates["notification_in_app_enabled"] = user_data.notification_in_app_enabled
+    if user_data.notification_feed_changes_enabled is not None:
+        updates["notification_feed_changes_enabled"] = (
+            user_data.notification_feed_changes_enabled
+        )
 
     if not updates:
         # Return current profile
-        return await get_user_profile(current_user, db)
+        return await get_user(current_user, db)
 
     # Build UPDATE query
     set_clause = ", ".join([f"{key} = ?" for key in updates.keys()])
     values = list(updates.values()) + [current_user.id]
 
     cursor.execute(
-        f"UPDATE user_profiles SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
+        f"UPDATE users SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
         values,
     )
     db.commit()
@@ -101,7 +112,7 @@ async def update_user_profile(
         raise HTTPException(status_code=404, detail="Profile not found")
 
     # Return updated profile
-    return await get_user_profile(current_user, db)
+    return await get_user(current_user, db)
 
 
 @router.get("/notifications", response_model=NotificationSettings)
@@ -115,8 +126,8 @@ async def get_notification_settings(
         """
         SELECT notification_viewing_reminder_days, notification_email_enabled,
                notification_in_app_enabled, notification_feed_changes_enabled
-        FROM user_profiles
-        WHERE user_id = ?
+        FROM users
+        WHERE id = ?
         """,
         (current_user.id,),
     )
@@ -138,13 +149,13 @@ async def update_notification_settings(
     cursor = db.cursor()
     cursor.execute(
         """
-        UPDATE user_profiles
+        UPDATE users
         SET notification_viewing_reminder_days = ?,
             notification_email_enabled = ?,
             notification_in_app_enabled = ?,
             notification_feed_changes_enabled = ?,
             updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = ?
+        WHERE id = ?
         """,
         (
             settings.notification_viewing_reminder_days,

@@ -236,10 +236,6 @@ class User(UserBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-class UserProfile(BaseModel):
-    """Schema for user profile information."""
-
     bio: Optional[str] = None
     dream_property_description: Optional[str] = None
     preferred_price_min: Optional[int] = None
@@ -247,12 +243,16 @@ class UserProfile(BaseModel):
     preferred_bedrooms_min: Optional[int] = None
     preferred_property_types: Optional[List[str]] = None
     preferred_locations: Optional[List[str]] = None
+    notification_viewing_reminder_days: Optional[int] = 3
+    notification_email_enabled: Optional[bool] = True
+    notification_in_app_enabled: Optional[bool] = True
+    notification_feed_changes_enabled: Optional[bool] = True
 
 
-class UserProfileResponse(UserProfile):
+class UserResponse(User):
     """Schema for reading user profile from the database."""
 
-    user_id: int
+    id: int
     notification_viewing_reminder_days: int
     notification_email_enabled: bool
     notification_in_app_enabled: bool
