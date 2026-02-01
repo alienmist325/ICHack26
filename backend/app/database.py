@@ -132,16 +132,6 @@ def init_db() -> None:
                 email TEXT UNIQUE NOT NULL,
                 hashed_password TEXT,
                 is_active BOOLEAN DEFAULT 1,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-
-        # User profiles table - extended user information
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS user_profiles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER UNIQUE NOT NULL,
                 bio TEXT,
                 dream_property_description TEXT,
                 preferred_price_min INTEGER,
@@ -154,9 +144,7 @@ def init_db() -> None:
                 notification_in_app_enabled BOOLEAN DEFAULT 1,
                 notification_feed_changes_enabled BOOLEAN DEFAULT 1,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
 

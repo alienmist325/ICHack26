@@ -2,15 +2,20 @@
 Shared feeds/wishlists endpoints for collaborative property discovery.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, WebSocket
-from typing import List, Dict, Set
 import sqlite3
 from datetime import datetime
+from typing import Dict, List, Set
+
+from fastapi import APIRouter, Depends, HTTPException, WebSocket
 
 from app.database import get_db
-from app.schemas import SharedFeedCreate, SharedFeedResponse, SharedFeedDetailResponse
 from app.routers.auth import get_current_user
-from app.schemas import User
+from app.schemas import (
+    SharedFeedCreate,
+    SharedFeedDetailResponse,
+    SharedFeedResponse,
+    User,
+)
 from app.security import generate_invite_token
 
 router = APIRouter(prefix="/shared-feeds", tags=["shared feeds"])

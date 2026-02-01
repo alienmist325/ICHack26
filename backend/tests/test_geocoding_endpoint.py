@@ -7,9 +7,9 @@ Tests the `/routing/geocode` endpoint with various address formats.
 import pytest
 from fastapi.testclient import TestClient
 
+import backend.app.main as main_module
 from backend.app.main import app
 from backend.services.geocoding_service import GeocodingService
-import backend.app.main as main_module
 
 
 @pytest.fixture

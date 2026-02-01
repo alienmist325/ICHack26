@@ -8,19 +8,20 @@ This module provides:
 - Database fixture for test isolation
 """
 
-import pytest
 import sqlite3
+import sys
 import tempfile
 from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
-import sys
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.main import app
 from app.database import get_db_context, init_db
-from app.security import hash_password, create_access_token, create_refresh_token
+from app.main import app
+from app.security import create_access_token, create_refresh_token, hash_password
 
 
 @pytest.fixture(scope="session")
@@ -98,7 +99,6 @@ def clear_database(test_db_path, request):
             "shared_feeds",
             "refresh_tokens",
             "oauth_providers",
-            "user_profiles",
             "users",
             "ratings",
             "properties",

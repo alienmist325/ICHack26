@@ -282,19 +282,22 @@ const Spinner = styled.div`
 `;
 
 interface UserProfile {
+  id: number;
+  email: string;
+  is_active: boolean;
   bio?: string;
-  preferences?: {
-    minPrice?: number;
-    maxPrice?: number;
-    propertyTypes?: string[];
-    locations?: string[];
-    minBedrooms?: number;
-    maxBedrooms?: number;
-  };
-  notifications?: {
-    emailUpdates?: boolean;
-    pushNotifications?: boolean;
-  };
+  dream_property_description?: string;
+  preferred_price_min?: number;
+  preferred_price_max?: number;
+  preferred_bedrooms_min?: number;
+  preferred_property_types?: string[];
+  preferred_locations?: string[];
+  notification_viewing_reminder_days?: number;
+  notification_email_enabled?: boolean;
+  notification_in_app_enabled?: boolean;
+  notification_feed_changes_enabled?: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export function ProfilePage() {
@@ -312,8 +315,10 @@ export function ProfilePage() {
   const [minBedrooms, setMinBedrooms] = useState("");
   const [maxBedrooms, setMaxBedrooms] = useState("");
   const [locations, setLocations] = useState("");
-  const [emailUpdates, setEmailUpdates] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
+  const [notificationViewingReminder, setNotificationViewingReminder] = useState("3");
+  const [notificationEmailEnabled, setNotificationEmailEnabled] = useState(true);
+  const [notificationInAppEnabled, setNotificationInAppEnabled] = useState(true);
+  const [notificationFeedChangesEnabled, setNotificationFeedChangesEnabled] = useState(true);
 
   // Load profile on mount
   useEffect(() => {
@@ -327,17 +332,25 @@ export function ProfilePage() {
       setLoading(true);
       setError(null);
 
-      const response = await api.get("/users/profile");
+      const response = await api.get("/users/");
       const profile: UserProfile = response;
 
+      // Extract flat fields from backend response
       setBio(profile.bio || "");
-      setMinPrice(profile.preferences?.minPrice?.toString() || "");
-      setMaxPrice(profile.preferences?.maxPrice?.toString() || "");
-      setMinBedrooms(profile.preferences?.minBedrooms?.toString() || "");
-      setMaxBedrooms(profile.preferences?.maxBedrooms?.toString() || "");
-      setLocations((profile.preferences?.locations || []).join(", "));
-      setEmailUpdates(profile.notifications?.emailUpdates ?? true);
-      setPushNotifications(profile.notifications?.pushNotifications ?? true);
+      setMinPrice(profile.preferred_price_min?.toString() || "");
+      setMaxPrice(profile.preferred_price_max?.toString() || "");
+      setMinBedrooms(profile.preferred_bedrooms_min?.toString() || "");
+      setLocations((profile.preferred_locations || []).join(", "));
+      
+      // Notification settings
+      setNotificationViewingReminder(
+        profile.notification_viewing_reminder_days?.toString() || "3"
+      );
+      setNotificationEmailEnabled(profile.notification_email_enabled ?? true);
+      setNotificationInAppEnabled(profile.notification_in_app_enabled ?? true);
+      setNotificationFeedChangesEnabled(
+        profile.notification_feed_changes_enabled ?? true
+      );
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to load profile";
@@ -356,25 +369,25 @@ export function ProfilePage() {
       setError(null);
       setSuccess(false);
 
+      // Send flat fields that match backend schema
       const profileData = {
-        bio,
-        preferences: {
-          minPrice: minPrice ? parseInt(minPrice) : undefined,
-          maxPrice: maxPrice ? parseInt(maxPrice) : undefined,
-          minBedrooms: minBedrooms ? parseInt(minBedrooms) : undefined,
-          maxBedrooms: maxBedrooms ? parseInt(maxBedrooms) : undefined,
-          locations: locations
-            .split(",")
-            .map((l) => l.trim())
-            .filter((l) => l),
-        },
-        notifications: {
-          emailUpdates,
-          pushNotifications,
-        },
+        bio: bio || undefined,
+        preferred_price_min: minPrice ? parseInt(minPrice) : undefined,
+        preferred_price_max: maxPrice ? parseInt(maxPrice) : undefined,
+        preferred_bedrooms_min: minBedrooms ? parseInt(minBedrooms) : undefined,
+        preferred_locations: locations
+          .split(",")
+          .map((l) => l.trim())
+          .filter((l) => l) || undefined,
+        notification_viewing_reminder_days: notificationViewingReminder
+          ? parseInt(notificationViewingReminder)
+          : 3,
+        notification_email_enabled: notificationEmailEnabled,
+        notification_in_app_enabled: notificationInAppEnabled,
+        notification_feed_changes_enabled: notificationFeedChangesEnabled,
       };
 
-      await api.put("/users/profile", profileData);
+      await api.put("/users/", profileData);
       setSuccess(true);
       addToast("Profile updated successfully!", "success");
 
@@ -402,7 +415,7 @@ export function ProfilePage() {
       setSaving(true);
       setError(null);
 
-      await api.delete("/users/profile");
+      await api.delete("/users");
       addToast("Account deleted successfully", "success");
 
       setTimeout(() => navigate("/login"), 1500);
@@ -540,24 +553,46 @@ export function ProfilePage() {
           <Section>
             <SectionTitle>Notifications</SectionTitle>
 
+            <FormGroup>
+              <Label>Viewing Reminder (days before viewing)</Label>
+              <Input
+                type="number"
+                min="1"
+                max="30"
+                value={notificationViewingReminder}
+                onChange={(e) => setNotificationViewingReminder(e.target.value)}
+                disabled={saving}
+              />
+            </FormGroup>
+
             <CheckboxLabel>
               <input
                 type="checkbox"
-                checked={emailUpdates}
-                onChange={(e) => setEmailUpdates(e.target.checked)}
+                checked={notificationEmailEnabled}
+                onChange={(e) => setNotificationEmailEnabled(e.target.checked)}
                 disabled={saving}
               />
-              Email me updates about new properties matching my preferences
+              Email notifications enabled
             </CheckboxLabel>
 
             <CheckboxLabel>
               <input
                 type="checkbox"
-                checked={pushNotifications}
-                onChange={(e) => setPushNotifications(e.target.checked)}
+                checked={notificationInAppEnabled}
+                onChange={(e) => setNotificationInAppEnabled(e.target.checked)}
                 disabled={saving}
               />
-              Send me push notifications on my device
+              In-app notifications enabled
+            </CheckboxLabel>
+
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={notificationFeedChangesEnabled}
+                onChange={(e) => setNotificationFeedChangesEnabled(e.target.checked)}
+                disabled={saving}
+              />
+              Notify me when shared feed changes
             </CheckboxLabel>
           </Section>
 

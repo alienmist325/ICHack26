@@ -621,6 +621,22 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+# Add a delete user function if needed
+def delete_user(user_id: int) -> bool:
+    """Delete a user by ID.
+
+    Args:
+        user_id: User's ID
+
+    Returns:
+        True if user was deleted, False otherwise
+    """
+    with get_db_context() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        return cursor.rowcount > 0
+
+
 # ============================================================================
 # Routing/Isochrone Query Functions
 # ============================================================================

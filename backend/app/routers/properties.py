@@ -2,19 +2,20 @@
 Property-related endpoints for bookmarks, status, comments, and ratings.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List
 import sqlite3
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.database import get_db
+from app.routers.auth import get_current_user
 from app.schemas import (
-    PropertyStatusUpdate,
     PropertyComment,
     PropertyCommentResponse,
     PropertyStatusResponse,
+    PropertyStatusUpdate,
+    User,
 )
-from app.routers.auth import get_current_user
-from app.schemas import User
 
 router = APIRouter(prefix="/properties", tags=["properties"])
 

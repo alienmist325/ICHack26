@@ -2,15 +2,16 @@
 Personalized feed based on user preferences and starred properties.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List
-import sqlite3
 import json
+import sqlite3
+from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from app import crud
 from app.database import get_db
 from app.routers.auth import get_current_user
 from app.schemas import User
-from app import crud
 
 router = APIRouter(prefix="/feed", tags=["personalization"])
 
@@ -96,8 +97,8 @@ async def get_personalized_feed(
         """
         SELECT bio, dream_property_description, preferred_price_min, preferred_price_max,
                preferred_bedrooms_min, preferred_property_types, preferred_locations
-        FROM user_profiles
-        WHERE user_id = ?
+        FROM users
+        WHERE id = ?
         """,
         (current_user.id,),
     )

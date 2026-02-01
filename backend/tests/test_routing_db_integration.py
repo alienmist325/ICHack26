@@ -12,9 +12,7 @@ These tests:
 """
 
 import sqlite3
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -65,7 +63,6 @@ def db_with_properties(test_db_path):
     """Create database with sample properties in different locations."""
     # Use the test database that's already set up by conftest.py
     # Just insert test properties
-    import sqlite3
 
     conn = sqlite3.connect(str(test_db_path), timeout=10)
     conn.row_factory = sqlite3.Row

@@ -2,15 +2,15 @@
 Viewing calendar endpoints for scheduling property viewings.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
-from typing import List, Optional
-from datetime import datetime
 import sqlite3
+from datetime import datetime
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.database import get_db
-from app.schemas import ViewingEventCreate, ViewingEventResponse
 from app.routers.auth import get_current_user
-from app.schemas import User
+from app.schemas import User, ViewingEventCreate, ViewingEventResponse
 
 router = APIRouter(prefix="/viewings", tags=["viewings"])
 
