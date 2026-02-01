@@ -1,9 +1,8 @@
 import { useAuth } from "../hooks/useAuth";
-import { useGlobalData } from "../components/hooks/useGlobalData";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { House } from "../types";
-import { rightMoveBlue } from "../constants";
+import { colors } from "../constants";
 import { api } from "../api/client";
 import { useToast } from "../components/hooks/useToast";
 import { useNavigate, useParams } from "react-router-dom";
@@ -30,6 +29,8 @@ import { BsStarFill } from "react-icons/bs";
 export interface HouseCardProps {
   house: House;
 }
+
+const { rightMoveBlue } = colors;
 
 const CardContainer = styled.div`
   display: flex;
