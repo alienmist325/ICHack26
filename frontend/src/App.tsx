@@ -20,6 +20,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { HouseSearchLayout } from "./pages/HouseSearchLayout";
 import { ProfilePage } from "./pages/ProfilePage";
+import { FavoritesPage } from "./pages/FavoritesPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -66,6 +68,30 @@ function App() {
                   <ProtectedRoute>
                     <>
                       <ProfilePage />
+                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                    </>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRoute>
+                    <>
+                      <FavoritesPage />
+                      <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+                    </>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <>
+                      <SettingsPage />
                       <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
                     </>
                   </ProtectedRoute>
