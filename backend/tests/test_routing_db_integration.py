@@ -39,64 +39,36 @@ BIRMINGHAM_LAT, BIRMINGHAM_LON = 52.5085, -1.8845
 
 
 @pytest.fixture
-def temp_db():
+def temp_db(tmp_path):
     """Create a temporary test database."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        db_path = Path(tmpdir) / "test.db"
+    db_path = tmp_path / "test.db"
 
-        # Patch the DATABASE_PATH to use temp database
-        with patch("backend.app.database.DATABASE_PATH", db_path):
-            # Initialize the database
-            conn = sqlite3.connect(str(db_path))
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+    # Patch the DATABASE_PATH directly on the module (not monkeypatch)
+    import backend.app.database as database_module
 
-            # Create properties table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS properties (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    rightmove_id TEXT UNIQUE NOT NULL,
-                    listing_title TEXT,
-                    listing_url TEXT,
-                    incode TEXT,
-                    outcode TEXT,
-                    full_address TEXT,
-                    latitude REAL,
-                    longitude REAL,
-                    property_type TEXT,
-                    listing_type TEXT,
-                    bedrooms INTEGER,
-                    bathrooms INTEGER,
-                    size TEXT,
-                    furnishing_type TEXT,
-                    amenities TEXT,
-                    price REAL,
-                    first_listed_date TEXT,
-                    days_listed INTEGER,
-                    description TEXT,
-                    images TEXT,
-                    agent_name TEXT,
-                    agent_phone TEXT,
-                    agent_profile_url TEXT,
-                    rental_frequency TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            conn.commit()
-            conn.close()
+    original_path = database_module.DATABASE_PATH
+    database_module.DATABASE_PATH = db_path
 
-            yield db_path
+    # Now initialize the database with real schema
+    from backend.app.database import init_db
+
+    init_db()
+
+    yield db_path
+
+    # Restore original path
+    database_module.DATABASE_PATH = original_path
 
 
 @pytest.fixture
-def db_with_properties(temp_db, monkeypatch):
+def db_with_properties(test_db_path):
     """Create database with sample properties in different locations."""
-    # Monkeypatch to use test database
-    monkeypatch.setattr("backend.app.database.DATABASE_PATH", temp_db)
+    # Use the test database that's already set up by conftest.py
+    # Just insert test properties
+    import sqlite3
 
-    # Insert test properties
-    conn = sqlite3.connect(str(temp_db))
+    conn = sqlite3.connect(str(test_db_path), timeout=10)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     properties = [
@@ -172,35 +144,40 @@ def db_with_properties(temp_db, monkeypatch):
         },
     ]
 
-    for prop in properties:
-        cursor.execute(
-            """
-            INSERT INTO properties (
-                rightmove_id, listing_title, listing_url, full_address,
-                latitude, longitude, property_type, listing_type,
-                bedrooms, bathrooms, price, description
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                prop["rightmove_id"],
-                prop["listing_title"],
-                prop["listing_url"],
-                prop["full_address"],
-                prop["latitude"],
-                prop["longitude"],
-                prop["property_type"],
-                prop["listing_type"],
-                prop["bedrooms"],
-                prop["bathrooms"],
-                prop["price"],
-                prop["description"],
-            ),
-        )
+    try:
+        for prop in properties:
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO properties (
+                    rightmove_id, listing_title, listing_url, full_address,
+                    latitude, longitude, property_type, listing_type,
+                    bedrooms, bathrooms, price, text_description,
+                    first_scraped_at, last_scraped_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    prop["rightmove_id"],
+                    prop["listing_title"],
+                    prop["listing_url"],
+                    prop["full_address"],
+                    prop["latitude"],
+                    prop["longitude"],
+                    prop["property_type"],
+                    prop["listing_type"],
+                    prop["bedrooms"],
+                    prop["bathrooms"],
+                    prop["price"],
+                    prop["description"],
+                    "2026-01-01T00:00:00Z",
+                    "2026-01-01T00:00:00Z",
+                ),
+            )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
 
-    return temp_db
+    yield test_db_path
 
 
 @pytest.fixture

@@ -31,7 +31,7 @@ class TestPropertyEndpoints:
         """Test starring property via API endpoint."""
         prop = create_property(mock_property_data)
 
-        response = authenticated_client.post(f"/properties/{prop['id']}/star")
+        response = authenticated_client.post(f"/properties/{prop.id}/star")
 
         assert response.status_code == 200
         assert "starred" in response.json()
@@ -41,10 +41,10 @@ class TestPropertyEndpoints:
         prop = create_property(mock_property_data)
 
         # Star first
-        authenticated_client.post(f"/properties/{prop['id']}/star")
+        authenticated_client.post(f"/properties/{prop.id}/star")
 
         # Then unstar
-        response = authenticated_client.post(f"/properties/{prop['id']}/unstar")
+        response = authenticated_client.post(f"/properties/{prop.id}/unstar")
 
         assert response.status_code == 200
 
@@ -53,7 +53,7 @@ class TestPropertyEndpoints:
         prop = create_property(mock_property_data)
 
         response = authenticated_client.post(
-            f"/properties/{prop['id']}/status",
+            f"/properties/{prop.id}/status",
             json={"status": "interested"},
         )
 
@@ -64,7 +64,7 @@ class TestPropertyEndpoints:
         prop = create_property(mock_property_data)
 
         response = authenticated_client.post(
-            f"/properties/{prop['id']}/comments",
+            f"/properties/{prop.id}/comments",
             json={"comment": "Great property!"},
         )
 
@@ -76,11 +76,11 @@ class TestPropertyEndpoints:
         prop = create_property(mock_property_data)
 
         authenticated_client.post(
-            f"/properties/{prop['id']}/comments",
+            f"/properties/{prop.id}/comments",
             json={"comment": "Test comment"},
         )
 
-        response = authenticated_client.get(f"/properties/{prop['id']}/comments")
+        response = authenticated_client.get(f"/properties/{prop.id}/comments")
 
         assert response.status_code == 200
         comments = response.json()
@@ -92,13 +92,13 @@ class TestPropertyEndpoints:
         prop = create_property(mock_property_data)
 
         comment_response = authenticated_client.post(
-            f"/properties/{prop['id']}/comments",
+            f"/properties/{prop.id}/comments",
             json={"comment": "Comment to delete"},
         )
         comment_id = comment_response.json()["id"]
 
         response = authenticated_client.delete(
-            f"/properties/{prop['id']}/comments/{comment_id}"
+            f"/properties/{prop.id}/comments/{comment_id}"
         )
 
         assert response.status_code == 200
@@ -113,8 +113,8 @@ class TestPropertyEndpoints:
         """Test that property endpoints require authentication."""
         prop = create_property(mock_property_data)
 
-        response = client.post(f"/properties/{prop['id']}/star")
+        response = client.post(f"/properties/{prop.id}/star")
         assert response.status_code == 401
 
-        response = client.post(f"/properties/{prop['id']}/comments")
+        response = client.post(f"/properties/{prop.id}/comments")
         assert response.status_code == 401

@@ -15,8 +15,15 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context - using argon2 to avoid bcrypt 72-byte limitation
+# Falls back to bcrypt_sha256 if argon2 is not available
+pwd_context = CryptContext(
+    schemes=["argon2", "bcrypt_sha256"],
+    deprecated="auto",
+    argon2__memory_cost=65536,
+    argon2__time_cost=3,
+    argon2__parallelism=4,
+)
 
 
 class TokenData(BaseModel):

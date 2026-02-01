@@ -62,14 +62,23 @@ def setup_test_database(test_db_path):
 
 
 @pytest.fixture(autouse=True)
-def clear_database(test_db_path):
+def clear_database(test_db_path, request):
     """
-    Clear all tables before each test for isolation.
+    Clear all tables after each test for isolation.
 
     This fixture ensures each test starts with a clean database.
     Order matters due to foreign key constraints.
+
+    Skips clearing for integration and routing tests that require shared state.
     """
     yield
+
+    # Skip clearing for integration and routing tests
+    if (
+        "test_integration" in request.node.nodeid
+        or "test_routing_db_integration" in request.node.nodeid
+    ):
+        return
 
     # Clear tables in reverse order of foreign key dependencies
     conn = sqlite3.connect(test_db_path)

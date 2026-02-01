@@ -101,6 +101,10 @@ def _row_to_property(row: sqlite3.Row) -> Property:
 
 def create_property(property_data: PropertyCreate) -> Property:
     """Create a new property in the database."""
+    # Handle both PropertyCreate objects and dicts
+    if isinstance(property_data, dict):
+        property_data = PropertyCreate(**property_data)
+
     with get_db_context() as conn:
         cursor = conn.cursor()
 
@@ -247,6 +251,12 @@ def get_properties(
         query = "SELECT * FROM properties WHERE 1=1"
         params: List[Any] = []
 
+        # Always exclude removed properties by default unless specifically requested
+        if filters is None or not filters.removed:
+            query += " AND removed = 0"
+        else:
+            query += " AND removed = 1"
+
         if filters:
             if filters.search_query is not None:
                 search = filters.search_query
@@ -280,9 +290,6 @@ def get_properties(
             if filters.outcode is not None:
                 query += " AND outcode = ?"
                 params.append(filters.outcode)
-
-            query += " AND removed = ?"
-            params.append(1 if filters.removed else 0)
 
         query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
