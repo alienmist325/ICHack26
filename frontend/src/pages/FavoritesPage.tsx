@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { FiHeart } from "react-icons/fi";
 import BackgroundPattern from "../components/BackgroundPattern";
 import Button from "../components/FormElements/Button";
 import CardComponent from "../components/FormElements/Card";
@@ -40,6 +41,29 @@ const Content = styled(CardComponent)`
   }
 `;
 
+const IconWrapper = styled.div`
+  font-size: 4rem;
+  color: ${colors.teal};
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: heartbeat 1.5s ease-in-out infinite;
+
+  @keyframes heartbeat {
+    0%, 100% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.05);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    75% {
+      transform: scale(1.05);
+    }
+  }
+`;
+
 const Title = styled.h1`
   font-size: 2.5rem;
   color: ${colors.teal};
@@ -62,6 +86,9 @@ export function FavoritesPage() {
       <PageContainer>
         <BackgroundPattern />
         <Content>
+          <IconWrapper>
+            <FiHeart fill="currentColor" />
+          </IconWrapper>
           <Title>Favorites</Title>
           <Description>
             Your favorite properties will appear here. This feature is coming

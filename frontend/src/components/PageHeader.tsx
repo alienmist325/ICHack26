@@ -44,6 +44,29 @@ const Title = styled.h1`
   color: ${typography.pageTitle.color};
   margin: 0;
   padding: 0;
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, ${colors.teal} 0%, ${colors.purple} 100%);
+    border-radius: 2px;
+    animation: slideIn 0.6s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
 `;
 
 const Subtitle = styled.p`
