@@ -1,133 +1,184 @@
 import styled from "styled-components";
 import { useState } from "react";
-import { GiMushroomHouse } from "react-icons/gi";
-import { FiLogOut, FiUser } from "react-icons/fi";
+import { FiLogOut, FiUser, FiSettings, FiHeart } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { HeaderContainer } from "../components/layout/HeaderContainer";
 import { FooterContainer } from "../components/layout/FooterContainer";
 import { HouseSearch } from "../components/screens/HouseSearch";
-import { NavigationPane } from "../components/layout/NavigationPane";
-import { rightMoveBlue } from "../constants";
-import { Button } from "../components/layout/Button";
+import { colors, spacing, animations } from "../constants";
 import { useAuth } from "../hooks/useAuth";
+import BackgroundPattern from "../components/BackgroundPattern";
+import LeftMoveLogo from "../components/LeftMoveLogo";
 
 const AppContent = styled.div`
   flex: 1;
   overflow: auto;
+  background: ${colors.lightBg};
+  position: relative;
+  scroll-behavior: smooth;
+  
+  /* Smooth scroll for webkit browsers */
+  scrollbar-width: thin;
+  scrollbar-color: ${colors.teal}40 transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${colors.teal}40;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: ${colors.teal}60;
+    }
+  }
 `;
 
-const SidebarButton = styled(Button)`
-  background-color: ${rightMoveBlue};
-  margin-left: 12px;
-`;
-
-const TopRightCorner = styled.div`
+const BackgroundPatternWrapper = styled.div`
   position: absolute;
-  right: 0;
   top: 0;
-  margin: 0.75rem;
-  display: flex;
-  gap: 12px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
 `;
 
-const CenteredContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
+const ContentWrapper = styled.div`
+  position: relative;
+  z-index: 1;
   height: 100%;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 `;
 
-const UserInfo = styled.div`
+const IconsContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  color: ${rightMoveBlue};
-  font-size: 14px;
 `;
 
-const UserEmail = styled.span`
-  font-weight: 500;
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-const UserButton = styled(Button)`
-  background-color: transparent;
-  color: ${rightMoveBlue};
-  border: 2px solid ${rightMoveBlue};
-  padding: 8px 12px;
-  font-size: 14px;
+const LogoAndText = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 16px;
+`;
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  color: ${colors.medText};
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all ${animations.base};
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
 
   &:hover {
-    background-color: ${rightMoveBlue};
-    color: white;
+    color: ${colors.teal};
+    background-color: ${colors.teal}15;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
-const LogoutButton = styled(UserButton)`
-  border-color: #e53e3e;
-  color: #e53e3e;
+const AccountIcon = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: ${colors.teal}20;
+  border: 2px solid ${colors.teal};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: ${colors.teal};
+  cursor: pointer;
+  transition: all ${animations.base};
 
   &:hover {
-    background-color: #e53e3e;
+    background-color: ${colors.teal}30;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
 export function HouseSearchLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
-
   return (
     <>
       <HeaderContainer>
-        <>
-          <CenteredContainer>
-            <GiMushroomHouse />
-            Not Rightmove
-          </CenteredContainer>
+        <LogoAndText>
+          <LeftMoveLogo onClick={() => navigate('/')} />
+        </LogoAndText>
 
-          <TopRightCorner>
-            {user && (
-              <UserInfo>
-                <UserButton onClick={() => navigate('/profile')}>
-                  <FiUser />
-                  <span>Profile</span>
-                </UserButton>
-                <UserEmail title={user.email}>{user.email}</UserEmail>
-              </UserInfo>
-            )}
-            <LogoutButton onClick={handleLogout}>
-              <FiLogOut />
-              <span>Logout</span>
-            </LogoutButton>
-            <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
-          </TopRightCorner>
-        </>
+        <IconsContainer>
+          <IconButton
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <FiLogOut />
+          </IconButton>
+          <IconButton
+            onClick={() => navigate('/settings')}
+            title="Settings"
+          >
+            <FiSettings />
+          </IconButton>
+          <IconButton
+            onClick={() => navigate('/favorites')}
+            title="Favorites"
+          >
+            <FiHeart />
+          </IconButton>
+          {user && (
+            <AccountIcon
+              onClick={() => navigate('/profile')}
+              title={user.email}
+            >
+              <FiUser />
+            </AccountIcon>
+          )}
+        </IconsContainer>
       </HeaderContainer>
-      <NavigationPane
-        leftSidebarOpen={leftSidebarOpen}
-        toggleLeftSidebar={toggleLeftSidebar}
-      />
       <AppContent>
-        <HouseSearch />
+        <BackgroundPatternWrapper>
+          <BackgroundPattern />
+        </BackgroundPatternWrapper>
+        <ContentWrapper>
+          <HouseSearch />
+        </ContentWrapper>
       </AppContent>
       <FooterContainer>Made for IC Hack 2026</FooterContainer>
     </>

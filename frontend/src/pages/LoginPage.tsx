@@ -6,44 +6,25 @@ import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
 import { FaMicrosoft } from "react-icons/fa";
+import BackgroundPattern from "../components/BackgroundPattern";
+import Button from "../components/FormElements/Button";
+import FormInput from "../components/FormElements/Input";
+import CardComponent from "../components/FormElements/Card";
+import { colors, spacing, animations } from "../constants";
 
 const PageContainer = styled.div`
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background: linear-gradient(
-    135deg,
-    #667eea 0%,
-    #764ba2 25%,
-    #f093fb 50%,
-    #4facfe 75%,
-    #00f2fe 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background: ${colors.lightBg};
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
-  @keyframes gradientShift {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
+  position: relative;
 `;
 
-const Card = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+const CardWrapper = styled(CardComponent)`
   padding: 60px 50px;
   width: 100%;
   max-width: 440px;
@@ -69,14 +50,14 @@ const Card = styled.div`
 const Title = styled.h1`
   font-size: 32px;
   font-weight: 700;
-  color: #1a202c;
+  color: ${colors.darkText};
   margin: 0 0 10px 0;
   letter-spacing: -0.5px;
 `;
 
 const Subtitle = styled.p`
   font-size: 14px;
-  color: #718096;
+  color: ${colors.lightText};
   margin: 0 0 40px 0;
   line-height: 1.5;
 `;
@@ -89,7 +70,7 @@ const Label = styled.label`
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #2d3748;
+  color: ${colors.medText};
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -101,31 +82,10 @@ const InputWrapper = styled.div`
   align-items: center;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 14px 16px 14px 44px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
-  transition: all 0.3s ease;
-  background: #f7fafc;
-
-  &:focus {
-    outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  }
-
-  &::placeholder {
-    color: #cbd5e0;
-  }
-`;
-
 const InputIcon = styled.div`
   position: absolute;
   left: 14px;
-  color: #a0aec0;
+  color: ${colors.lightText};
   font-size: 18px;
   pointer-events: none;
 `;
@@ -135,13 +95,13 @@ const TogglePassword = styled.button`
   right: 14px;
   background: none;
   border: none;
-  color: #a0aec0;
+  color: ${colors.lightText};
   font-size: 18px;
   cursor: pointer;
   transition: color 0.2s;
 
   &:hover {
-    color: #667eea;
+    color: ${colors.teal};
   }
 `;
 
@@ -156,7 +116,7 @@ const RememberRow = styled.div`
 const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
-  color: #4a5568;
+  color: ${colors.medText};
   cursor: pointer;
 
   input {
@@ -164,55 +124,31 @@ const CheckboxLabel = styled.label`
     width: 16px;
     height: 16px;
     cursor: pointer;
+    accent-color: ${colors.teal};
   }
 `;
 
 const ForgotLink = styled.a`
-  color: #667eea;
+  color: ${colors.teal};
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
+  cursor: pointer;
 
   &:hover {
-    color: #764ba2;
+    color: ${colors.purple};
   }
 `;
 
-const SubmitButton = styled.button`
-  width: 100%;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+const SubmitButtonWrapper = styled.div`
   margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 `;
 
 const Divider = styled.div`
   display: flex;
   align-items: center;
   margin: 30px 0;
-  color: #cbd5e0;
+  color: ${colors.lightText};
   font-size: 13px;
 
   &::before,
@@ -220,7 +156,7 @@ const Divider = styled.div`
     content: "";
     flex: 1;
     height: 1px;
-    background: #e2e8f0;
+    background: ${colors.borderColor};
   }
 
   &::before {
@@ -241,8 +177,8 @@ const OAuthContainer = styled.div`
 
 const OAuthButton = styled.button`
   padding: 12px;
-  border: 2px solid #e2e8f0;
-  background: white;
+  border: 2px solid ${colors.borderColor};
+  background: ${colors.white};
   border-radius: 10px;
   cursor: pointer;
   font-size: 18px;
@@ -252,8 +188,8 @@ const OAuthButton = styled.button`
   justify-content: center;
 
   &:hover {
-    border-color: #667eea;
-    background: #f7fafc;
+    border-color: ${colors.teal};
+    background: ${colors.lightBg};
     transform: translateY(-2px);
   }
 `;
@@ -261,30 +197,31 @@ const OAuthButton = styled.button`
 const SignupLink = styled.p`
   text-align: center;
   font-size: 14px;
-  color: #4a5568;
+  color: ${colors.medText};
   margin: 0;
 
   a {
-    color: #667eea;
+    color: ${colors.teal};
     text-decoration: none;
     font-weight: 600;
     cursor: pointer;
     transition: color 0.2s;
 
     &:hover {
-      color: #764ba2;
+      color: ${colors.purple};
     }
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fed7d7;
-  color: #c53030;
+  background: ${colors.error}15;
+  color: ${colors.error};
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 13px;
   animation: slideDown 0.3s ease-out;
+  border: 1px solid ${colors.error}30;
 
   @keyframes slideDown {
     from {
@@ -328,7 +265,8 @@ export function LoginPage() {
 
   return (
     <PageContainer>
-      <Card>
+      <BackgroundPattern />
+      <CardWrapper>
         <Title>Welcome Back</Title>
         <Subtitle>Sign in to your account to continue</Subtitle>
 
@@ -343,12 +281,13 @@ export function LoginPage() {
               <InputIcon>
                 <FiMail />
               </InputIcon>
-              <Input
+              <FormInput
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
+                style={{ paddingLeft: "44px" }}
               />
             </InputWrapper>
           </FormGroup>
@@ -359,12 +298,13 @@ export function LoginPage() {
               <InputIcon>
                 <FiLock />
               </InputIcon>
-              <Input
+              <FormInput
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+                style={{ paddingLeft: "44px", paddingRight: "44px" }}
               />
               <TogglePassword
                 type="button"
@@ -381,12 +321,19 @@ export function LoginPage() {
               <input type="checkbox" />
               Remember me
             </CheckboxLabel>
-            <ForgotLink href="#">Forgot password?</ForgotLink>
+            <ForgotLink>Forgot password?</ForgotLink>
           </RememberRow>
 
-          <SubmitButton type="submit" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
-          </SubmitButton>
+          <SubmitButtonWrapper>
+            <Button
+              variant="primary"
+              style={{ width: "100%", textTransform: "uppercase", letterSpacing: "0.5px" }}
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </Button>
+          </SubmitButtonWrapper>
         </form>
 
         <Divider>or</Divider>
@@ -407,7 +354,7 @@ export function LoginPage() {
           Don't have an account?{" "}
           <a onClick={() => navigate("/register")}>Sign up</a>
         </SignupLink>
-      </Card>
+      </CardWrapper>
     </PageContainer>
   );
 }

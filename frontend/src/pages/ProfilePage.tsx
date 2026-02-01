@@ -5,13 +5,24 @@ import { useAuth } from "../hooks/useAuth";
 import { FiArrowLeft, FiSave, FiTrash2 } from "react-icons/fi";
 import { api } from "../api/client";
 import { useToast } from "../components/hooks/useToast";
+import BackgroundPattern from "../components/BackgroundPattern";
+import Button from "../components/FormElements/Button";
+import FormInput from "../components/FormElements/Input";
+import CardComponent from "../components/FormElements/Card";
+import PageHeader from "../components/PageHeader";
+import { colors, spacing, animations } from "../constants";
+import UnifiedHeader from "../components/layout/UnifiedHeader";
+import { FooterContainer } from "../components/layout/FooterContainer";
 
 const PageContainer = styled.div`
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40px 20px;
+  background: ${colors.lightBg};
+  padding-top: 80px;
+  padding-bottom: 60px;
+  padding-left: 20px;
+  padding-right: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 `;
 
@@ -20,11 +31,7 @@ const Container = styled.div`
   margin: 0 auto;
 `;
 
-const Card = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+const CardWrapper = styled(CardComponent)`
   padding: 40px;
   animation: slideUp 0.6s ease-out;
 
@@ -44,41 +51,10 @@ const Card = styled.div`
   }
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-`;
-
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  color: #667eea;
-  font-size: 24px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-
-  &:hover {
-    color: #764ba2;
-    transform: translateX(-4px);
-  }
-`;
-
-const Title = styled.h1`
-  font-size: 32px;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0;
-`;
-
 const Section = styled.div`
   margin-bottom: 40px;
   padding-bottom: 40px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid ${colors.borderColor};
 
   &:last-child {
     border-bottom: none;
@@ -88,7 +64,7 @@ const Section = styled.div`
 const SectionTitle = styled.h2`
   font-size: 18px;
   font-weight: 600;
-  color: #2d3748;
+  color: ${colors.medText};
   margin: 0 0 20px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -102,56 +78,29 @@ const Label = styled.label`
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #2d3748;
+  color: ${colors.medText};
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
-  transition: all 0.3s ease;
-  background: #f7fafc;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
-  &:focus {
-    outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &::placeholder {
-    color: #cbd5e0;
-  }
-`;
-
 const Textarea = styled.textarea`
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border: 2px solid ${colors.borderColor};
+  border-radius: 8px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background: #f7fafc;
+  background: ${colors.lightBg};
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   resize: vertical;
   min-height: 100px;
 
   &:focus {
     outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    border-color: ${colors.teal};
+    background: ${colors.white};
+    box-shadow: 0 0 0 4px ${colors.teal}20;
   }
 
   &:disabled {
@@ -160,7 +109,7 @@ const Textarea = styled.textarea`
   }
 
   &::placeholder {
-    color: #cbd5e0;
+    color: ${colors.lightText};
   }
 `;
 
@@ -168,7 +117,7 @@ const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #4a5568;
+  color: ${colors.medText};
   cursor: pointer;
   margin-bottom: 12px;
 
@@ -176,6 +125,7 @@ const CheckboxLabel = styled.label`
     width: 18px;
     height: 18px;
     cursor: pointer;
+    accent-color: ${colors.teal};
   }
 `;
 
@@ -189,71 +139,31 @@ const ButtonGroup = styled.div`
   }
 `;
 
-const Button = styled.button`
-  padding: 12px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+const ButtonWrapper = styled.div`
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  flex: 1;
-`;
-
-const SaveButton = styled(Button)`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const DeleteButton = styled(Button)`
-  background: #fed7d7;
-  color: #c53030;
-  border: 2px solid #fc8181;
-
-  &:hover:not(:disabled) {
-    background: #fc8181;
-    color: white;
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fed7d7;
-  color: #c53030;
+  background: ${colors.error}15;
+  color: ${colors.error};
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 13px;
+  border: 1px solid ${colors.error}30;
 `;
 
 const SuccessMessage = styled.div`
-  background: #c6f6d5;
-  color: #22543d;
+  background: ${colors.success}15;
+  color: ${colors.success};
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 13px;
+  border: 1px solid ${colors.success}30;
 `;
 
 const LoadingContainer = styled.div`
@@ -264,8 +174,8 @@ const LoadingContainer = styled.div`
 `;
 
 const Spinner = styled.div`
-  border: 3px solid #e2e8f0;
-  border-top: 3px solid #667eea;
+  border: 3px solid ${colors.borderColor};
+  border-top: 3px solid ${colors.teal};
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -430,185 +340,205 @@ export function ProfilePage() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <Container>
-          <Card>
-            <LoadingContainer>
-              <Spinner />
-            </LoadingContainer>
-          </Card>
-        </Container>
-      </PageContainer>
+      <>
+        <UnifiedHeader />
+        <PageContainer>
+          <Container>
+            <CardWrapper>
+              <LoadingContainer>
+                <Spinner />
+              </LoadingContainer>
+            </CardWrapper>
+          </Container>
+        </PageContainer>
+        <FooterContainer />
+      </>
     );
   }
 
   return (
-    <PageContainer>
-      <Container>
-        <Card>
-          <Header>
-            <BackButton onClick={() => navigate("/")}>
-              <FiArrowLeft />
-            </BackButton>
-            <Title>Profile Settings</Title>
-            <div style={{ width: 40 }} />
-          </Header>
+    <>
+      <UnifiedHeader />
+      <PageContainer>
+        <Container>
+          <CardWrapper>
+            <PageHeader
+              title="Profile Settings"
+              showBackButton={true}
+              onBack={() => navigate("/")}
+            />
 
-          {error && <ErrorMessage>{error}</ErrorMessage>}
-          {success && (
-            <SuccessMessage>Profile updated successfully!</SuccessMessage>
-          )}
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            {success && (
+              <SuccessMessage>Profile updated successfully!</SuccessMessage>
+            )}
 
-          {/* Bio Section */}
-          <Section>
-            <SectionTitle>About You</SectionTitle>
-            <FormGroup>
-              <Label>Bio</Label>
-              <Textarea
-                placeholder="Tell us about yourself and what you're looking for in a property..."
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                disabled={saving}
-              />
-            </FormGroup>
-          </Section>
+            {/* Bio Section */}
+            <Section>
+              <SectionTitle>About You</SectionTitle>
+              <FormGroup>
+                <Label>Bio</Label>
+                <Textarea
+                  placeholder="Tell us about yourself and what you're looking for in a property..."
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  disabled={saving}
+                />
+              </FormGroup>
+            </Section>
 
-          {/* Preferences Section */}
-          <Section>
-            <SectionTitle>Property Preferences</SectionTitle>
+            {/* Preferences Section */}
+            <Section>
+              <SectionTitle>Property Preferences</SectionTitle>
 
-            <FormGroup>
-              <Label>Price Range</Label>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "12px",
-                }}
-              >
-                <div>
-                  <Input
-                    type="number"
-                    placeholder="Min price (£)"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    disabled={saving}
-                  />
+              <FormGroup>
+                <Label>Price Range</Label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                  }}
+                >
+                  <div>
+                    <FormInput
+                      type="number"
+                      placeholder="Min price (£)"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <FormInput
+                      type="number"
+                      placeholder="Max price (£)"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Input
-                    type="number"
-                    placeholder="Max price (£)"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    disabled={saving}
-                  />
+              </FormGroup>
+
+              <FormGroup>
+                <Label>Bedrooms</Label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                  }}
+                >
+                  <div>
+                    <FormInput
+                      type="number"
+                      placeholder="Min bedrooms"
+                      value={minBedrooms}
+                      onChange={(e) => setMinBedrooms(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <FormInput
+                      type="number"
+                      placeholder="Max bedrooms"
+                      value={maxBedrooms}
+                      onChange={(e) => setMaxBedrooms(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
                 </div>
-              </div>
-            </FormGroup>
+              </FormGroup>
 
-            <FormGroup>
-              <Label>Bedrooms</Label>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "12px",
-                }}
-              >
-                <div>
-                  <Input
-                    type="number"
-                    placeholder="Min bedrooms"
-                    value={minBedrooms}
-                    onChange={(e) => setMinBedrooms(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="number"
-                    placeholder="Max bedrooms"
-                    value={maxBedrooms}
-                    onChange={(e) => setMaxBedrooms(e.target.value)}
-                    disabled={saving}
-                  />
-                </div>
-              </div>
-            </FormGroup>
+              <FormGroup>
+                <Label>Preferred Locations</Label>
+                <FormInput
+                  type="text"
+                  placeholder="E.g., London, Manchester, Bristol (comma-separated)"
+                  value={locations}
+                  onChange={(e) => setLocations(e.target.value)}
+                  disabled={saving}
+                />
+              </FormGroup>
+            </Section>
 
-            <FormGroup>
-              <Label>Preferred Locations</Label>
-              <Input
-                type="text"
-                placeholder="E.g., London, Manchester, Bristol (comma-separated)"
-                value={locations}
-                onChange={(e) => setLocations(e.target.value)}
-                disabled={saving}
-              />
-            </FormGroup>
-          </Section>
+            {/* Notifications Section */}
+            <Section>
+              <SectionTitle>Notifications</SectionTitle>
 
-          {/* Notifications Section */}
-          <Section>
-            <SectionTitle>Notifications</SectionTitle>
+              <FormGroup>
+                <Label>Viewing Reminder (days before viewing)</Label>
+                <FormInput
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={notificationViewingReminder}
+                  onChange={(e) => setNotificationViewingReminder(e.target.value)}
+                  disabled={saving}
+                />
+              </FormGroup>
 
-            <FormGroup>
-              <Label>Viewing Reminder (days before viewing)</Label>
-              <Input
-                type="number"
-                min="1"
-                max="30"
-                value={notificationViewingReminder}
-                onChange={(e) => setNotificationViewingReminder(e.target.value)}
-                disabled={saving}
-              />
-            </FormGroup>
+              <CheckboxLabel>
+                <input
+                  type="checkbox"
+                  checked={notificationEmailEnabled}
+                  onChange={(e) => setNotificationEmailEnabled(e.target.checked)}
+                  disabled={saving}
+                />
+                Email notifications enabled
+              </CheckboxLabel>
 
-            <CheckboxLabel>
-              <input
-                type="checkbox"
-                checked={notificationEmailEnabled}
-                onChange={(e) => setNotificationEmailEnabled(e.target.checked)}
-                disabled={saving}
-              />
-              Email notifications enabled
-            </CheckboxLabel>
+              <CheckboxLabel>
+                <input
+                  type="checkbox"
+                  checked={notificationInAppEnabled}
+                  onChange={(e) => setNotificationInAppEnabled(e.target.checked)}
+                  disabled={saving}
+                />
+                In-app notifications enabled
+              </CheckboxLabel>
 
-            <CheckboxLabel>
-              <input
-                type="checkbox"
-                checked={notificationInAppEnabled}
-                onChange={(e) => setNotificationInAppEnabled(e.target.checked)}
-                disabled={saving}
-              />
-              In-app notifications enabled
-            </CheckboxLabel>
+              <CheckboxLabel>
+                <input
+                  type="checkbox"
+                  checked={notificationFeedChangesEnabled}
+                  onChange={(e) => setNotificationFeedChangesEnabled(e.target.checked)}
+                  disabled={saving}
+                />
+                Notify me when shared feed changes
+              </CheckboxLabel>
+            </Section>
 
-            <CheckboxLabel>
-              <input
-                type="checkbox"
-                checked={notificationFeedChangesEnabled}
-                onChange={(e) => setNotificationFeedChangesEnabled(e.target.checked)}
-                disabled={saving}
-              />
-              Notify me when shared feed changes
-            </CheckboxLabel>
-          </Section>
-
-          {/* Actions */}
-          <ButtonGroup>
-            <SaveButton onClick={handleSaveProfile} disabled={saving}>
-              <FiSave />
-              {saving ? "Saving..." : "Save Changes"}
-            </SaveButton>
-            <DeleteButton onClick={handleDeleteAccount} disabled={saving}>
-              <FiTrash2 />
-              Delete Account
-            </DeleteButton>
-          </ButtonGroup>
-        </Card>
-      </Container>
-    </PageContainer>
+            {/* Actions */}
+            <ButtonGroup>
+              <ButtonWrapper>
+                <Button
+                  variant="primary"
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                  style={{ width: "100%", display: "flex", gap: "8px" }}
+                >
+                  <FiSave />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </ButtonWrapper>
+              <ButtonWrapper>
+                <Button
+                  variant="danger"
+                  onClick={handleDeleteAccount}
+                  disabled={saving}
+                  style={{ width: "100%", display: "flex", gap: "8px" }}
+                >
+                  <FiTrash2 />
+                  Delete Account
+                </Button>
+              </ButtonWrapper>
+            </ButtonGroup>
+          </CardWrapper>
+        </Container>
+      </PageContainer>
+      <FooterContainer />
+    </>
   );
 }

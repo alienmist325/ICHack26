@@ -28,9 +28,6 @@ from app.schemas import (
     TravelTimeResponse,
     TravelTimeResult,
 )
-from app.routers import auth, users, properties, viewings, shared_feeds, personalization
-from backend.models.rightmove import RightmoveScraperInput
-from backend.scraper.scrape import scrape_rightmove
 from backend.services.geocoding_service import GeocodingService
 from backend.services.routing_service import (
     RoutingService,

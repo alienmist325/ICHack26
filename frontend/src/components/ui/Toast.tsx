@@ -35,18 +35,30 @@ const ToastItem = styled.div<{ type: ToastType }>`
     }
   }};
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease-out;
+  box-shadow: ${(props) => {
+    switch (props.type) {
+      case "success":
+        return "0 4px 12px rgba(16, 185, 129, 0.2)";
+      case "error":
+        return "0 4px 12px rgba(239, 68, 68, 0.2)";
+      case "warning":
+        return "0 4px 12px rgba(245, 158, 11, 0.2)";
+      case "info":
+      default:
+        return "0 4px 12px rgba(59, 130, 246, 0.2)";
+    }
+  }};
+  animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
   max-width: 100%;
 
   @keyframes slideIn {
     from {
-      transform: translateX(400px);
+      transform: translateX(400px) scale(0.9);
       opacity: 0;
     }
     to {
-      transform: translateX(0);
+      transform: translateX(0) scale(1);
       opacity: 1;
     }
   }
@@ -67,6 +79,21 @@ const IconContainer = styled.div<{ type: ToastType }>`
     }
   }};
   flex-shrink: 0;
+  animation: iconBounce 0.6s ease-out;
+
+  @keyframes iconBounce {
+    0% {
+      transform: scale(0) rotate(-45deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
 `;
 
 const MessageContainer = styled.div`

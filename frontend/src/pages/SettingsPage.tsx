@@ -1,46 +1,50 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import BackgroundPattern from "../components/BackgroundPattern";
+import Button from "../components/FormElements/Button";
+import CardComponent from "../components/FormElements/Card";
+import PageHeader from "../components/PageHeader";
+import { colors, spacing, animations } from "../constants";
+import UnifiedHeader from "../components/layout/UnifiedHeader";
+import { FooterContainer } from "../components/layout/FooterContainer";
 
 const PageContainer = styled.div`
+  min-height: 100vh;
   width: 100vw;
-  height: 100vh;
-  margin: auto;
+  box-sizing: border-box;
+  background: ${colors.lightBg};
+  padding-top: 80px;
+  padding-bottom: 60px;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  align-items: center;
 `;
 
-const Header = styled.div`
-  color: white;
-  margin-bottom: 2rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  margin: 0 0 0.5rem 0;
-`;
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin: 0;
-`;
-
-const SettingsContainer = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+const SettingsContainer = styled(CardComponent)`
   max-width: 600px;
+  width: 100%;
+  animation: slideUp 0.6s ease-out;
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
 
 const SettingGroup = styled.div`
   margin-bottom: 2rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid ${colors.borderColor};
 
   &:last-child {
     border-bottom: none;
@@ -52,14 +56,14 @@ const SettingGroup = styled.div`
 const SettingLabel = styled.label`
   display: block;
   font-size: 1rem;
-  color: #2d3748;
+  color: ${colors.medText};
   margin-bottom: 0.5rem;
   font-weight: 500;
 `;
 
 const SettingDescription = styled.p`
   font-size: 0.9rem;
-  color: #718096;
+  color: ${colors.lightText};
   margin: 0.5rem 0 0 0;
 `;
 
@@ -67,26 +71,9 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
-`;
 
-const Button = styled.button<{ danger?: boolean }>`
-  flex: 1;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  background: ${(props) => (props.danger ? "#f56565" : "#667eea")};
-  color: white;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px
-      ${(props) =>
-        props.danger ? "rgba(245, 101, 101, 0.4)" : "rgba(102, 126, 234, 0.4)"};
+  @media (max-width: 600px) {
+    flex-direction: column;
   }
 `;
 
@@ -100,48 +87,64 @@ export function SettingsPage() {
   };
 
   return (
-    <PageContainer>
-      <Header>
-        <Title>Settings</Title>
-        <Subtitle>Manage your account preferences</Subtitle>
-      </Header>
+    <>
+      <UnifiedHeader />
+      <PageContainer>
+        <SettingsContainer>
+          <PageHeader
+            title="Settings"
+            subtitle="Manage your account preferences"
+            showBackButton={true}
+            onBack={() => navigate("/")}
+          />
 
-      <SettingsContainer>
-        <SettingGroup>
-          <SettingLabel>Theme</SettingLabel>
-          <SettingDescription>
-            Customize your app appearance (Coming soon)
-          </SettingDescription>
-        </SettingGroup>
+          <SettingGroup>
+            <SettingLabel>Theme</SettingLabel>
+            <SettingDescription>
+              Customize your app appearance (Coming soon)
+            </SettingDescription>
+          </SettingGroup>
 
-        <SettingGroup>
-          <SettingLabel>Notifications</SettingLabel>
-          <SettingDescription>
-            Manage notification preferences (Coming soon)
-          </SettingDescription>
-        </SettingGroup>
+          <SettingGroup>
+            <SettingLabel>Notifications</SettingLabel>
+            <SettingDescription>
+              Manage notification preferences (Coming soon)
+            </SettingDescription>
+          </SettingGroup>
 
-        <SettingGroup>
-          <SettingLabel>Privacy</SettingLabel>
-          <SettingDescription>
-            Control your privacy settings (Coming soon)
-          </SettingDescription>
-        </SettingGroup>
+          <SettingGroup>
+            <SettingLabel>Privacy</SettingLabel>
+            <SettingDescription>
+              Control your privacy settings (Coming soon)
+            </SettingDescription>
+          </SettingGroup>
 
-        <SettingGroup>
-          <SettingLabel>Account</SettingLabel>
-          <SettingDescription>
-            Manage your account information (Coming soon)
-          </SettingDescription>
-        </SettingGroup>
+          <SettingGroup>
+            <SettingLabel>Account</SettingLabel>
+            <SettingDescription>
+              Manage your account information (Coming soon)
+            </SettingDescription>
+          </SettingGroup>
 
-        <ButtonGroup>
-          <Button onClick={() => navigate("/")}>Back to Home</Button>
-          <Button danger onClick={handleLogout}>
-            Logout
-          </Button>
-        </ButtonGroup>
-      </SettingsContainer>
-    </PageContainer>
+          <ButtonGroup>
+            <Button
+              variant="secondary"
+              onClick={() => navigate("/")}
+              style={{ flex: 1 }}
+            >
+              Back to Home
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleLogout}
+              style={{ flex: 1 }}
+            >
+              Logout
+            </Button>
+          </ButtonGroup>
+        </SettingsContainer>
+      </PageContainer>
+      <FooterContainer />
+    </>
   );
 }

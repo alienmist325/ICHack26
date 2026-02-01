@@ -17,12 +17,6 @@ import sys
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-# Add backend directory to path to allow relative imports to work
-# This is needed for imports like "from app.database" to work when CLI is run standalone
-backend_dir = Path(__file__).parent.parent
-if str(backend_dir) not in sys.path:
-    sys.path.insert(0, str(backend_dir))
-
 import click
 
 from backend.app import crud
@@ -34,6 +28,13 @@ from backend.models.rightmove import (
     RightmoveScraperInput,
 )
 from backend.services import scrape_rightmove
+
+# Add backend directory to path to allow relative imports to work
+# This is needed for imports like "from app.database" to work when CLI is run standalone
+backend_dir = Path(__file__).parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 
 # Configure logging for CLI output
 logging.basicConfig(

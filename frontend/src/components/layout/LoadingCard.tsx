@@ -1,4 +1,5 @@
 import styled, { keyframes } from "styled-components";
+import { colors } from "../../constants";
 
 const shimmer = keyframes`
   0% {
@@ -14,22 +15,24 @@ const CardContainer = styled.div`
   align-items: center;
   gap: 2rem;
   padding: 1.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid ${colors.borderColor};
+  background-color: ${colors.white};
 `;
 
 const ImageSkeletonContainer = styled.div`
   width: 250px;
   height: 200px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   background: linear-gradient(
     90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
+    ${colors.lightBg} 25%,
+    ${colors.borderColor} 50%,
+    ${colors.lightBg} 75%
   );
   background-size: 1200px 100%;
   animation: ${shimmer} 2s infinite;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 `;
 
 const ContentContainer = styled.div`
@@ -45,9 +48,9 @@ const SkeletonLine = styled.div<{ width?: string }>`
   border-radius: 4px;
   background: linear-gradient(
     90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
+    ${colors.lightBg} 25%,
+    ${colors.borderColor} 50%,
+    ${colors.lightBg} 75%
   );
   background-size: 1200px 100%;
   animation: ${shimmer} 2s infinite;
