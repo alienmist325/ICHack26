@@ -16,6 +16,9 @@ from app.schemas import (
     PropertyStatusUpdate,
     User,
 )
+from app.routers.auth import get_current_user
+from app.schemas import User
+from backend.services.verification import verify_property
 
 router = APIRouter(prefix="/properties", tags=["properties"])
 
@@ -298,6 +301,42 @@ async def delete_property_comment(
         raise HTTPException(status_code=404, detail="Comment not found")
 
     return None
+
+
+# ============================================================================
+# Property Verification (Bland AI)
+# ============================================================================
+
+
+@router.post("/{property_id}/verify", status_code=202)
+async def trigger_property_verification(
+    property_id: int,
+    db: sqlite3.Connection = Depends(get_db),
+):
+    """
+    Trigger property verification via Bland AI.
+
+    Makes an automated call to the agent to verify property availability.
+    Returns immediately (HTTP 202 Accepted) - verification runs in background.
+
+    Response:
+    - property_id: The property being verified
+    - status: "processing" (verification is running in background)
+    """
+    # Verify property exists
+    cursor = db.cursor()
+    cursor.execute("SELECT id FROM properties WHERE id = ?", (property_id,))
+    if not cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    # Trigger verification (non-blocking, returns immediately)
+    result = verify_property(property_id)
+
+    # Check if there was an error
+    if result.get("status") == "error":
+        raise HTTPException(status_code=400, detail=result.get("error"))
+
+    return result
 
 
 # ============================================================================
