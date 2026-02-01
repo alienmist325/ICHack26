@@ -248,6 +248,11 @@ def get_properties(
         params: List[Any] = []
 
         if filters:
+            if filters.search_query is not None:
+                search = filters.search_query
+                query += " AND (listing_title LIKE ? OR full_address LIKE ? OR text_description LIKE ?)"
+                params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
+
             if filters.min_price is not None:
                 query += " AND price >= ?"
                 params.append(filters.min_price)
@@ -373,6 +378,9 @@ def calculate_property_score(
     for rating in ratings:
         # Calculate age of the vote in days
         voted_at = datetime.fromisoformat(rating.voted_at)
+        # Make naive datetime offset-aware if it isn't already
+        if voted_at.tzinfo is None:
+            voted_at = voted_at.replace(tzinfo=timezone.utc)
         age_days = (now - voted_at).total_seconds() / 86400
 
         # Exponential decay: weight = 0.5 ^ (age_days / decay_days)
@@ -416,13 +424,26 @@ def get_properties_with_scores(
     limit: int = 100,
     offset: int = 0,
     min_score: Optional[float] = None,
-) -> List[PropertyWithScore]:
+    search_query: Optional[str] = None,
+) -> tuple[List[PropertyWithScore], int]:
     """
     Get properties with their rating scores.
+
+    Returns a tuple of (properties_with_scores, total_count).
 
     Note: This is not optimized for large datasets. For production use,
     consider materializing scores in the database.
     """
+    # If search_query is provided, add it to filters
+    if search_query is not None:
+        if filters is None:
+            filters = PropertyFilters(search_query=search_query)
+        else:
+            filters.search_query = search_query
+
+    # Get total count before limiting
+    total_count = get_property_count(filters)
+
     properties = get_properties(
         filters, limit=limit * 2, offset=offset
     )  # Get more to account for filtering
@@ -436,7 +457,7 @@ def get_properties_with_scores(
 
     # Sort by score (highest first) and apply limit
     properties_with_scores.sort(key=lambda p: p.score, reverse=True)
-    return properties_with_scores[:limit]
+    return properties_with_scores[:limit], total_count
 
 
 # ============================================================================
@@ -453,6 +474,11 @@ def get_property_count(filters: Optional[PropertyFilters] = None) -> int:
         params: List[Any] = []
 
         if filters:
+            if filters.search_query is not None:
+                search = filters.search_query
+                query += " AND (listing_title LIKE ? OR full_address LIKE ? OR text_description LIKE ?)"
+                params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
+
             if filters.min_price is not None:
                 query += " AND price >= ?"
                 params.append(filters.min_price)
