@@ -8,10 +8,10 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app import crud
-from app.database import get_db
-from app.routers.auth import get_current_user
-from app.schemas import User
+from backend.app import crud
+from backend.app.database import get_db
+from backend.app.routers.auth import get_current_user
+from backend.app.schemas import User
 
 router = APIRouter(prefix="/feed", tags=["personalization"])
 

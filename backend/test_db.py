@@ -4,9 +4,9 @@ Simple script to test database functionality.
 Run with: python -m backend.test_db
 """
 
-from app import crud
-from app.database import init_db
-from app.schemas import PropertyCreate, RatingCreate, VoteType
+from backend.app import crud
+from backend.app.database import init_db
+from backend.app.schemas import PropertyCreate, RatingCreate, VoteType
 
 
 def main():

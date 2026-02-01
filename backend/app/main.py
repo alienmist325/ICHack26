@@ -6,11 +6,18 @@ from typing import List, Optional
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import crud
-from app.database import init_db
-from app.routers import auth, personalization, properties, shared_feeds, users, viewings
+from backend.app import crud
+from backend.app.database import init_db
+from backend.app.routers import (
+    auth,
+    personalization,
+    properties,
+    shared_feeds,
+    users,
+    viewings,
+)
 from backend.config import settings
-from app.schemas import (
+from backend.app.schemas import (
     DistanceRequest,
     DistanceResponse,
     DistanceResult,

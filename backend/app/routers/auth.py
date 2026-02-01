@@ -7,14 +7,14 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 
-from app.database import get_db
-from app.schemas import (
+from backend.app.database import get_db
+from backend.app.schemas import (
     TokenResponse,
     User,
     UserLogin,
     UserRegister,
 )
-from app.security import (
+from backend.app.security import (
     create_token_pair,
     hash_password,
     verify_password,

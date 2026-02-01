@@ -5,8 +5,8 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from app.database import get_db_context
-from app.schemas import (
+from backend.app.database import get_db_context
+from backend.app.schemas import (
     Property,
     PropertyCreate,
     PropertyFilters,

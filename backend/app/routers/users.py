@@ -7,9 +7,9 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.database import get_db
-from app.routers.auth import get_current_user
-from app.schemas import (
+from backend.app.database import get_db
+from backend.app.routers.auth import get_current_user
+from backend.app.schemas import (
     NotificationSettings,
     User,
     UserResponse,

@@ -8,15 +8,15 @@ from typing import Dict, List, Set
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket
 
-from app.database import get_db
-from app.routers.auth import get_current_user
-from app.schemas import (
+from backend.app.database import get_db
+from backend.app.routers.auth import get_current_user
+from backend.app.schemas import (
     SharedFeedCreate,
     SharedFeedDetailResponse,
     SharedFeedResponse,
     User,
 )
-from app.security import generate_invite_token
+from backend.app.security import generate_invite_token
 
 router = APIRouter(prefix="/shared-feeds", tags=["shared feeds"])
 

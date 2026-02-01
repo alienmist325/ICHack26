@@ -19,9 +19,13 @@ from fastapi.testclient import TestClient
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.database import get_db_context, init_db
-from app.main import app
-from app.security import create_access_token, create_refresh_token, hash_password
+from backend.app.database import get_db_context, init_db
+from backend.app.main import app
+from backend.app.security import (
+    create_access_token,
+    create_refresh_token,
+    hash_password,
+)
 
 
 @pytest.fixture(scope="session")
@@ -44,10 +48,10 @@ def setup_test_database(test_db_path):
     4. Cleans up after all tests
     """
     # Override DATABASE_PATH for tests
-    import app.database
+    import backend.app.database
 
-    original_path = app.database.DATABASE_PATH
-    app.database.DATABASE_PATH = test_db_path
+    original_path = backend.app.database.DATABASE_PATH
+    backend.app.database.DATABASE_PATH = test_db_path
 
     # Initialize the test database
     init_db()
@@ -59,7 +63,7 @@ def setup_test_database(test_db_path):
         test_db_path.unlink()
 
     # Restore original path
-    app.database.DATABASE_PATH = original_path
+    backend.app.database.DATABASE_PATH = original_path
 
 
 @pytest.fixture(autouse=True)
