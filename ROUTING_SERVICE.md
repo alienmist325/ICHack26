@@ -498,6 +498,192 @@ The implementation currently makes fresh API calls for each request. For product
 
 All dependencies are already in `pyproject.toml`.
 
+## Testing
+
+The routing service has comprehensive test coverage with **61 tests** across two test suites:
+
+### Test Files
+
+1. **`backend/tests/test_routing_endpoints.py`** (45 tests)
+   - Unit tests for routing endpoints using mocks
+   - Validation tests for coordinates and durations
+   - Response structure validation
+   - Dependency injection testing
+
+2. **`backend/tests/test_routing_db_integration.py`** (16 tests)
+   - Database integration tests with real properties
+   - End-to-end testing with sample UK properties
+   - Response structure validation with actual data
+
+### Running Tests
+
+**All routing tests:**
+```bash
+pytest backend/tests/test_routing_endpoints.py backend/tests/test_routing_db_integration.py -v
+```
+
+**Only unit tests (with mocks):**
+```bash
+pytest backend/tests/test_routing_endpoints.py -v
+```
+
+**Only integration tests (with database):**
+```bash
+pytest backend/tests/test_routing_db_integration.py -v
+```
+
+**Specific test class:**
+```bash
+pytest backend/tests/test_routing_endpoints.py::TestIsochroneEndpoint -v
+```
+
+**Specific test:**
+```bash
+pytest backend/tests/test_routing_endpoints.py::TestIsochroneEndpoint::test_isochrone_valid_request -v
+```
+
+**With coverage report:**
+```bash
+pytest backend/tests/test_routing_endpoints.py --cov=backend.services.routing_service --cov-report=html
+```
+
+### Test Coverage Summary
+
+#### Unit Tests (test_routing_endpoints.py)
+
+**TestIsochroneEndpoint** (7 tests)
+- Valid isochrone requests
+- Duration validation (too short, too long, default)
+- Missing parameters
+- Malformed JSON
+
+**TestTravelTimesEndpoint** (8 tests)
+- Valid travel time calculations
+- Multiple destinations (1-25)
+- Destination limits
+- Response structure validation
+
+**TestDistancesEndpoint** (8 tests)
+- Valid distance calculations
+- Multiple destinations (1-25)
+- Destination limits
+- Response structure validation
+
+**TestRoutingErrorHandling** (3 tests)
+- Property not found errors (404)
+
+**TestRoutingCoordinateValidation** (6 tests)
+- UK bounds checking (north, south, east, west)
+- Valid coordinates (London, Manchester)
+
+**TestRoutingDurationValidation** (5 tests)
+- Minimum duration (60 seconds)
+- Maximum duration (3600 seconds)
+- Typical durations (300s, 600s, 1200s, etc.)
+
+**TestPropertiesWithIsochrone** (4 tests)
+- GET /properties without isochrone
+- GET /properties with isochrone filtering
+- Combined with other filters (bedrooms, price)
+
+**TestRoutingServiceUnit** (2 tests)
+- Service initialization
+- Singleton pattern removal verification
+
+**TestDependencyInjection** (2 tests)
+- FastAPI dependency override mechanism
+- Endpoint uses injected dependency
+
+#### Database Integration Tests (test_routing_db_integration.py)
+
+**TestIsochroneWithDatabase** (4 tests)
+- Isochrone with real database properties
+- Response structure validation with actual data
+- Different duration values
+
+**TestTravelTimesWithDatabase** (3 tests)
+- Travel times from London to other UK cities
+- Response structure validation
+- Multiple destination calculations
+
+**TestDistancesWithDatabase** (3 tests)
+- Distance calculations across UK cities
+- Response structure validation
+- Multiple destination calculations
+
+**TestPropertiesFilteringWithDatabase** (3 tests)
+- GET /properties with isochrone filtering
+- Combined filters (isochrone + price, isochrone + bedrooms)
+
+**TestErrorHandlingWithDatabase** (3 tests)
+- Error handling with real database
+- Property not found errors
+
+### Test Data
+
+The integration tests use real UK property data:
+- **London**: 51.5074°N, -0.1278°W
+- **Manchester**: 53.4808°N, -2.2426°W
+- **Leeds**: 53.8008°N, -1.5491°W
+- **Birmingham**: 52.5085°N, -1.8845°W
+
+### Mocking Strategy
+
+Unit tests use mocked `RoutingService` with:
+- Real validation methods (coordinates, duration)
+- Configurable mock responses
+- Side effects for testing error conditions
+
+Database integration tests use:
+- In-memory SQLite database
+- Sample properties with realistic data
+- Actual response structures
+
+Example mock configuration:
+```python
+@pytest.fixture
+def mock_routing_service():
+    """Mock routing service with real validation."""
+    service = MagicMock(spec=RoutingService)
+    
+    # Real validation
+    service._validate_coordinates = validate_coordinates
+    service._validate_duration = validate_duration
+    
+    # Mock responses
+    service.compute_isochrone.return_value = mock_isochrone_geojson
+    service.get_travel_times_matrix.side_effect = mock_travel_times
+    
+    return service
+```
+
+### Test Assertions
+
+Tests validate:
+- ✅ HTTP status codes (200, 400, 404, 503)
+- ✅ Response structure (required fields, types)
+- ✅ Coordinate validation (UK bounds)
+- ✅ Duration validation (60-3600 seconds)
+- ✅ Data conversions (seconds→minutes, meters→km)
+- ✅ Error handling and messages
+- ✅ Dependency injection mechanism
+- ✅ Database property retrieval
+
+### CI/CD Integration
+
+To run tests in CI/CD pipeline:
+
+```bash
+# Install test dependencies
+pip install pytest pytest-cov pytest-asyncio
+
+# Run all tests with coverage
+pytest backend/tests/test_routing*.py --cov=backend --cov-report=xml
+
+# Generate HTML coverage report
+pytest backend/tests/test_routing*.py --cov=backend --cov-report=html
+```
+
 ## Future Enhancements
 
 1. **Public Transit Support**: Add support for routing via bus/train
