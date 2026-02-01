@@ -5,6 +5,7 @@ import { Button } from "./Button";
 import { colors } from "../../constants";
 import { api } from "../../api/client";
 import { useToast } from "../hooks/useToast";
+import { useNavigate } from "react-router-dom";
 
 import { IoBed } from "react-icons/io5";
 import { GiHouse } from "react-icons/gi";
@@ -443,6 +444,12 @@ export function HouseCard(props: HouseCardProps) {
     return <FiHome />;
   };
 
+  const navigate = useNavigate();
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <CardContainer>
       <ImageContainer
@@ -513,9 +520,13 @@ export function HouseCard(props: HouseCardProps) {
           </Features>
         )}
 
-        <Button style={{ color: "#000000ff", backgroundColor: "#49dfb5" }}>
+        <Button
+          onClick={() => handleNavigation("/house")}
+          style={{ color: "#000000ff", backgroundColor: "#49dfb5" }}
+        >
           View more details
         </Button>
+
         <RatingContainer>
           <RatingButton
             isActive={userVote === "upvote"}
