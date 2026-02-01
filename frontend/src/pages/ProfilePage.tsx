@@ -2,15 +2,14 @@ import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { FiArrowLeft, FiSave, FiTrash2, FiPlus } from "react-icons/fi";
+import { FiSave, FiTrash2, FiPlus } from "react-icons/fi";
 import { api } from "../api/client";
 import { useToast } from "../components/hooks/useToast";
-import BackgroundPattern from "../components/BackgroundPattern";
 import Button from "../components/FormElements/Button";
 import FormInput from "../components/FormElements/Input";
 import CardComponent from "../components/FormElements/Card";
 import PageHeader from "../components/PageHeader";
-import { colors, spacing, animations } from "../constants";
+import { colors } from "../constants";
 import UnifiedHeader from "../components/layout/UnifiedHeader";
 import { FooterContainer } from "../components/layout/FooterContainer";
 import {
@@ -259,8 +258,6 @@ export function ProfilePage() {
   const [locationAddresses, setLocationAddresses] = useState<InputLocation[]>(
     []
   );
-  const [emailUpdates, setEmailUpdates] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
   const [locations, setLocations] = useState("");
   const [notificationViewingReminder, setNotificationViewingReminder] =
     useState("3");
@@ -275,6 +272,10 @@ export function ProfilePage() {
   useEffect(() => {
     loadProfile();
   }, [user]);
+
+  useEffect(() => {
+    setKeyLocations([]);
+  }, []);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -534,29 +535,29 @@ export function ProfilePage() {
                   disabled={saving}
                 />
               </FormGroup>
-  
-            <FormGroup>
-              <Label>Key Locations</Label>
-              {locationAddresses.map((location, index) => (
-                <LocationRowArea
-                  inputLocation={location}
-                  index={index}
-                  key={index}
-                  removeLocation={removeLocation}
-                  updateLocationAddress={updateLocationAddress}
-                  updateLocationLabel={updateLocationLabel}
-                ></LocationRowArea>
-              ))}
-              <Button
-                type="button"
-                onClick={addLocation}
-                disabled={saving}
-                style={{ marginTop: "8px", width: "100%" }}
-              >
-                <FiPlus /> Add Location
-              </Button>
-            </FormGroup>
-          </Section>
+
+              <FormGroup>
+                <Label>Key Locations</Label>
+                {locationAddresses.map((location, index) => (
+                  <LocationRowArea
+                    inputLocation={location}
+                    index={index}
+                    key={index}
+                    removeLocation={removeLocation}
+                    updateLocationAddress={updateLocationAddress}
+                    updateLocationLabel={updateLocationLabel}
+                  ></LocationRowArea>
+                ))}
+                <Button
+                  type="button"
+                  onClick={addLocation}
+                  disabled={saving}
+                  style={{ marginTop: "8px", width: "100%" }}
+                >
+                  <FiPlus /> Add Location
+                </Button>
+              </FormGroup>
+            </Section>
 
             {/* Notifications Section */}
             <Section>
@@ -569,7 +570,9 @@ export function ProfilePage() {
                   min="1"
                   max="30"
                   value={notificationViewingReminder}
-                  onChange={(e) => setNotificationViewingReminder(e.target.value)}
+                  onChange={(e) =>
+                    setNotificationViewingReminder(e.target.value)
+                  }
                   disabled={saving}
                 />
               </FormGroup>
@@ -578,7 +581,9 @@ export function ProfilePage() {
                 <input
                   type="checkbox"
                   checked={notificationEmailEnabled}
-                  onChange={(e) => setNotificationEmailEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    setNotificationEmailEnabled(e.target.checked)
+                  }
                   disabled={saving}
                 />
                 Email notifications enabled
@@ -588,7 +593,9 @@ export function ProfilePage() {
                 <input
                   type="checkbox"
                   checked={notificationInAppEnabled}
-                  onChange={(e) => setNotificationInAppEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    setNotificationInAppEnabled(e.target.checked)
+                  }
                   disabled={saving}
                 />
                 In-app notifications enabled
@@ -598,7 +605,9 @@ export function ProfilePage() {
                 <input
                   type="checkbox"
                   checked={notificationFeedChangesEnabled}
-                  onChange={(e) => setNotificationFeedChangesEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    setNotificationFeedChangesEnabled(e.target.checked)
+                  }
                   disabled={saving}
                 />
                 Notify me when shared feed changes

@@ -4,9 +4,7 @@ import { HouseCard } from "../layout/HouseCard";
 import { FilterPane } from "../layout/FilterPane";
 import { Pagination } from "../layout/Pagination";
 import { LoadingCard } from "../layout/LoadingCard";
-import { TravelTimeDisplay } from "../layout/TravelTimeDisplay";
-import { colors, spacing } from "../../constants";
-import { Button } from "../layout/Button";
+import { colors } from "../../constants";
 
 const ContentArea = styled.div`
   flex: 1;
@@ -71,8 +69,6 @@ const ListWrapper = styled.div`
 export function HouseSearch() {
   const { houses, totalCount, currentPage, setCurrentPage, isLoading } =
     useGlobalData();
-  const { houses, totalCount, currentPage, setCurrentPage, isLoading } =
-    useGlobalData();
 
   const PAGE_SIZE = 10;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
@@ -87,7 +83,6 @@ export function HouseSearch() {
         <MainContent>
           <ListWrapper>
             <VerticalList>
-              <TravelTimeDisplay property_id={houses[0].id}></TravelTimeDisplay>
               {isLoading ? (
                 // Show loading skeletons
                 Array.from({ length: 3 }).map((_, i) => (

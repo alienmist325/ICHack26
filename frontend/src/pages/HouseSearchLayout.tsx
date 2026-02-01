@@ -171,7 +171,6 @@ export function HouseSearchLayout() {
           <HouseSearch />
         </ContentWrapper>
       </AppContent>
-      <FooterContainer>Made for IC Hack 2026</FooterContainer>
     </>
   );
 }

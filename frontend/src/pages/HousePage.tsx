@@ -25,6 +25,7 @@ import {
 } from "react-icons/ai";
 import { FiHome, FiBox } from "react-icons/fi";
 import { BsStarFill } from "react-icons/bs";
+import { TravelTimeDisplay } from "../components/layout/TravelTimeDisplay";
 
 export interface HouseCardProps {
   house: House;
@@ -567,6 +568,12 @@ export function HousePage() {
             <ScoreDisplay>Score: {currentHouse?.score.toFixed(1)}</ScoreDisplay>
           )}
         </RatingContainer>
+
+        <InfoRow>
+          <TravelTimeDisplay
+            property_id={currentHouse?.id ?? 0}
+          ></TravelTimeDisplay>
+        </InfoRow>
 
         <ActionBar>
           <StarButton
