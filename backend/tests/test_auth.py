@@ -13,7 +13,6 @@ Tests cover:
 import pytest
 import sys
 from pathlib import Path
-from datetime import timedelta
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -26,7 +25,6 @@ from app.security import (
     verify_token,
 )
 from app.crud import create_user, get_user_by_email, get_user_by_id
-from app.schemas import TokenResponse
 
 
 @pytest.mark.auth

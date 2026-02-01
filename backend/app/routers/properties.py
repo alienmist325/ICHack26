@@ -5,16 +5,13 @@ Property-related endpoints for bookmarks, status, comments, and ratings.
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 import sqlite3
-import json
 
 from app.database import get_db
 from app.schemas import (
-    PropertyBookmark,
     PropertyStatusUpdate,
     PropertyComment,
     PropertyCommentResponse,
     PropertyStatusResponse,
-    VoteType,
 )
 from app.routers.auth import get_current_user
 from app.schemas import User

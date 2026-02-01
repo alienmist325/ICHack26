@@ -12,7 +12,6 @@ Tests cover:
 
 import pytest
 import sys
-import json
 from pathlib import Path
 
 # Add parent directory to path
@@ -24,7 +23,6 @@ from app.crud import (
     update_user_profile,
     get_user_by_id,
 )
-from app.security import hash_password
 
 
 @pytest.mark.db

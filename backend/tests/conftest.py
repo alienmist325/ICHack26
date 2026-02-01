@@ -19,7 +19,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.main import app
-from app.database import get_db, get_db_context, init_db, DATABASE_PATH
+from app.database import get_db_context, init_db
 from app.security import hash_password, create_access_token, create_refresh_token
 
 

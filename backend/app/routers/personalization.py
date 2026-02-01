@@ -6,10 +6,8 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List
 import sqlite3
 import json
-import math
 
 from app.database import get_db
-from app.schemas import PropertyWithScore
 from app.routers.auth import get_current_user
 from app.schemas import User
 from app import crud

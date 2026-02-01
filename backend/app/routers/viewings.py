@@ -4,7 +4,7 @@ Viewing calendar endpoints for scheduling property viewings.
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime
 import sqlite3
 
 from app.database import get_db

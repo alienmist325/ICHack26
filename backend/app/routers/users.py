@@ -3,7 +3,6 @@ User profile and preferences routes.
 """
 
 from fastapi import APIRouter, HTTPException, Depends
-from typing import Optional
 import json
 import sqlite3
 

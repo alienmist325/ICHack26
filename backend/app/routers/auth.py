@@ -18,7 +18,6 @@ from app.security import (
     verify_password,
     verify_token,
     create_token_pair,
-    generate_invite_token,
 )
 
 router = APIRouter(prefix="/auth", tags=["authentication"])

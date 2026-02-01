@@ -2,10 +2,9 @@
 Shared feeds/wishlists endpoints for collaborative property discovery.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, WebSocket, Query
-from typing import List, Optional, Dict, Set
+from fastapi import APIRouter, HTTPException, Depends, WebSocket
+from typing import List, Dict, Set
 import sqlite3
-import json
 from datetime import datetime
 
 from app.database import get_db
