@@ -27,6 +27,7 @@ from app.schemas import (
 )
 from backend.models.rightmove import RightmoveScraperInput
 from backend.scraper.scrape import scrape_rightmove
+from app.routers import auth, users, properties, viewings, shared_feeds, personalization
 from backend.services.routing_service import (
     RoutingService,
     properties_in_polygon,
@@ -92,6 +93,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(properties.router)
+app.include_router(viewings.router)
+app.include_router(shared_feeds.router)
+app.include_router(personalization.router)
 
 # ============================================================================
 # Property endpoints

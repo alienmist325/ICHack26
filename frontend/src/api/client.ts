@@ -137,16 +137,100 @@ class ApiClient {
     return this.handleResponse(response);
   }
 
-  async getOutcodes(): Promise<string[]> {
-    const response = await fetch(`${this.baseUrl}/outcodes`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+   async getOutcodes(): Promise<string[]> {
+     const response = await fetch(`${this.baseUrl}/outcodes`, {
+       method: 'GET',
+       headers: {
+         'Content-Type': 'application/json',
+       },
+     });
 
-    return this.handleResponse(response);
-  }
+     return this.handleResponse(response);
+   }
+
+   private getAuthHeaders() {
+     const tokens = localStorage.getItem('auth_tokens');
+     const authHeader: HeadersInit = {};
+     if (tokens) {
+       const parsed = JSON.parse(tokens);
+       authHeader['Authorization'] = `Bearer ${parsed.access_token}`;
+     }
+     return authHeader;
+   }
+
+   async starProperty(propertyId: number): Promise<any> {
+     const response = await fetch(`${this.baseUrl}/properties/${propertyId}/star`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         ...this.getAuthHeaders(),
+       },
+     });
+
+     return this.handleResponse(response);
+   }
+
+   async unstarProperty(propertyId: number): Promise<any> {
+     const response = await fetch(`${this.baseUrl}/properties/${propertyId}/unstar`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         ...this.getAuthHeaders(),
+       },
+     });
+
+     return this.handleResponse(response);
+   }
+
+   async setPropertyStatus(propertyId: number, status: string): Promise<any> {
+     const response = await fetch(`${this.baseUrl}/properties/${propertyId}/status`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         ...this.getAuthHeaders(),
+       },
+       body: JSON.stringify({ status }),
+     });
+
+     return this.handleResponse(response);
+   }
+
+   async get(endpoint: string): Promise<any> {
+     const response = await fetch(`${this.baseUrl}${endpoint}`, {
+       method: 'GET',
+       headers: {
+         'Content-Type': 'application/json',
+         ...this.getAuthHeaders(),
+       },
+     });
+
+     return this.handleResponse(response);
+   }
+
+   async put(endpoint: string, data: any): Promise<any> {
+     const response = await fetch(`${this.baseUrl}${endpoint}`, {
+       method: 'PUT',
+       headers: {
+         'Content-Type': 'application/json',
+         ...this.getAuthHeaders(),
+       },
+       body: JSON.stringify(data),
+     });
+
+     return this.handleResponse(response);
+   }
+
+   async delete(endpoint: string): Promise<any> {
+     const response = await fetch(`${this.baseUrl}${endpoint}`, {
+       method: 'DELETE',
+       headers: {
+         'Content-Type': 'application/json',
+         ...this.getAuthHeaders(),
+       },
+     });
+
+     return this.handleResponse(response);
+   }
 }
 
 export const api = new ApiClient(BASE_URL);

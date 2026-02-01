@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from app.database import get_db
+from app.database import get_db_context
 from app.schemas import (
     Property,
     PropertyCreate,
@@ -101,7 +101,7 @@ def _row_to_property(row: sqlite3.Row) -> Property:
 
 def create_property(property_data: PropertyCreate) -> Property:
     """Create a new property in the database."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         now = datetime.now(timezone.utc).isoformat()
@@ -142,7 +142,7 @@ def create_property(property_data: PropertyCreate) -> Property:
 
 def get_property_by_id(property_id: int) -> Optional[Property]:
     """Get a property by its database ID."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM properties WHERE id = ?", (property_id,))
         row = cursor.fetchone()
@@ -155,7 +155,7 @@ def get_property_by_id(property_id: int) -> Optional[Property]:
 
 def get_property_by_rightmove_id(rightmove_id: str) -> Optional[Property]:
     """Get a property by its Rightmove ID."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT * FROM properties WHERE rightmove_id = ?", (rightmove_id,)
@@ -172,7 +172,7 @@ def update_property(
     property_id: int, property_data: PropertyUpdate
 ) -> Optional[Property]:
     """Update an existing property."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         # Get only the fields that were actually set
@@ -231,7 +231,7 @@ def upsert_property(property_data: PropertyCreate) -> tuple[Property, bool]:
 
 def soft_delete_property(property_id: int) -> bool:
     """Soft delete a property by setting removed=True."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE properties SET removed = 1 WHERE id = ?", (property_id,))
         return cursor.rowcount > 0
@@ -241,7 +241,7 @@ def get_properties(
     filters: Optional[PropertyFilters] = None, limit: int = 100, offset: int = 0
 ) -> List[Property]:
     """Get properties with optional filters."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         query = "SELECT * FROM properties WHERE 1=1"
@@ -300,7 +300,7 @@ def get_properties(
 
 def create_rating(rating_data: RatingCreate) -> Rating:
     """Create a new rating for a property."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         cursor.execute(
@@ -328,7 +328,7 @@ def get_ratings_for_property(
         property_id: The property ID
         days: If provided, only return ratings from the last N days
     """
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         query = "SELECT * FROM ratings WHERE property_id = ?"
@@ -386,7 +386,7 @@ def calculate_property_score(
         # Exponential decay: weight = 0.5 ^ (age_days / decay_days)
         weight = math.pow(0.5, age_days / decay_days)
 
-        if rating.vote_type == VoteType.UPVOTE:
+        if rating.vote_type == VoteType.STAR or rating.vote_type == "star":
             upvotes += 1
             weighted_score += weight
         else:
@@ -467,7 +467,7 @@ def get_properties_with_scores(
 
 def get_property_count(filters: Optional[PropertyFilters] = None) -> int:
     """Get the total count of properties matching filters."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         query = "SELECT COUNT(*) FROM properties WHERE 1=1"
@@ -516,7 +516,7 @@ def get_property_count(filters: Optional[PropertyFilters] = None) -> int:
 
 def get_unique_outcodes() -> List[str]:
     """Get a list of all unique outcodes in the database."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT DISTINCT outcode FROM properties WHERE outcode IS NOT NULL ORDER BY outcode"
@@ -526,12 +526,92 @@ def get_unique_outcodes() -> List[str]:
 
 def get_unique_property_types() -> List[str]:
     """Get a list of all unique property types in the database."""
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT DISTINCT property_type FROM properties WHERE property_type IS NOT NULL ORDER BY property_type"
         )
         return [row[0] for row in cursor.fetchall()]
+
+
+# ============================================================================
+# User CRUD operations
+# ============================================================================
+
+
+def create_user(email: str, hashed_password: str) -> Optional[Dict[str, Any]]:
+    """Create a new user in the database.
+
+    Args:
+        email: User's email address
+        hashed_password: Hashed password
+
+    Returns:
+        User dict with id, email, hashed_password, is_active, created_at, updated_at
+    """
+    with get_db_context() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO users (email, hashed_password) VALUES (?, ?)",
+                (email, hashed_password),
+            )
+            user_id = cursor.lastrowid
+
+            # Fetch and return the created user
+            cursor.execute(
+                "SELECT id, email, hashed_password, is_active, created_at, updated_at FROM users WHERE id = ?",
+                (user_id,),
+            )
+            row = cursor.fetchone()
+            if row:
+                return dict(zip([desc[0] for desc in cursor.description], row))
+            return None
+        except sqlite3.IntegrityError:
+            # Email already exists
+            return None
+
+
+def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
+    """Get a user by ID.
+
+    Args:
+        user_id: User's ID
+
+    Returns:
+        User dict or None if not found
+    """
+    with get_db_context() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, email, hashed_password, is_active, created_at, updated_at FROM users WHERE id = ?",
+            (user_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return dict(zip([desc[0] for desc in cursor.description], row))
+        return None
+
+
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """Get a user by email address.
+
+    Args:
+        email: User's email address
+
+    Returns:
+        User dict or None if not found
+    """
+    with get_db_context() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, email, hashed_password, is_active, created_at, updated_at FROM users WHERE email = ?",
+            (email,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return dict(zip([desc[0] for desc in cursor.description], row))
+        return None
 
 
 # ============================================================================
@@ -552,7 +632,7 @@ def get_properties_by_ids(property_ids: List[int]) -> List[Property]:
     if not property_ids:
         return []
 
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         placeholders = ",".join(["?" for _ in property_ids])
         cursor.execute(
@@ -570,7 +650,7 @@ def get_all_properties_with_coordinates() -> List[Dict[str, Any]]:
     Returns:
         List of dicts with 'id', 'latitude', 'longitude' keys
     """
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
@@ -616,7 +696,7 @@ def get_properties_with_isochrone_and_filters(
     if not isochrone_property_ids:
         return [], 0
 
-    with get_db() as conn:
+    with get_db_context() as conn:
         cursor = conn.cursor()
 
         # Build base query: must be in isochrone results

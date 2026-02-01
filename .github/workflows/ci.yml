@@ -47,6 +47,9 @@ jobs:
     needs: qa
     runs-on: ubuntu-latest
 
+    env:
+      APIFY_API_KEY: ${{ secrets.APIFY_API_KEY }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

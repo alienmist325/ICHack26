@@ -46,13 +46,13 @@ def main():
     # Add some ratings
     print("Adding ratings...")
     crud.create_rating(
-        RatingCreate(property_id=property_obj.id, vote_type=VoteType.UPVOTE)
+        RatingCreate(property_id=property_obj.id, vote_type=VoteType.STAR)
     )
     crud.create_rating(
-        RatingCreate(property_id=property_obj.id, vote_type=VoteType.UPVOTE)
+        RatingCreate(property_id=property_obj.id, vote_type=VoteType.STAR)
     )
     crud.create_rating(
-        RatingCreate(property_id=property_obj.id, vote_type=VoteType.DOWNVOTE)
+        RatingCreate(property_id=property_obj.id, vote_type=VoteType.GONE_FROM_MARKET)
     )
     print("✓ Added 2 upvotes and 1 downvote\n")
 

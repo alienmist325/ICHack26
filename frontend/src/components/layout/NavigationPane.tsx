@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 interface NavigationPanelProps {
   toggleLeftSidebar: () => void;
@@ -45,8 +46,17 @@ const NavItem = styled.button`
   text-align: left;
   cursor: pointer;
   border-radius: 4px;
+  font-size: 1rem;
+  color: #1a202c;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  
   &:hover {
     background-color: #7cf1d0ff;
+  }
+  
+  &:active {
+    background-color: #5ee9d3ff;
   }
 `;
 
@@ -54,16 +64,33 @@ export function NavigationPane({
   toggleLeftSidebar,
   leftSidebarOpen,
 }: NavigationPanelProps) {
+  const navigate = useNavigate();
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    toggleLeftSidebar(); // Close sidebar after navigation
+  };
+
   return (
     <>
       <RightOverlay isOpen={leftSidebarOpen} onClick={toggleLeftSidebar} />
       <RightSidebar isOpen={leftSidebarOpen}>
         <h2>Navigation</h2>
-        <NavItem>Home</NavItem>
-        <NavItem>Search Houses</NavItem>
-        <NavItem>Favorites</NavItem>
-        <NavItem>Profile</NavItem>
-        <NavItem>Settings</NavItem>
+        <NavItem onClick={() => handleNavigation('/')}>
+          Home
+        </NavItem>
+        <NavItem onClick={() => handleNavigation('/')}>
+          Search Houses
+        </NavItem>
+        <NavItem onClick={() => handleNavigation('/favorites')}>
+          Favorites
+        </NavItem>
+        <NavItem onClick={() => handleNavigation('/profile')}>
+          Profile
+        </NavItem>
+        <NavItem onClick={() => handleNavigation('/settings')}>
+          Settings
+        </NavItem>
       </RightSidebar>
     </>
   );

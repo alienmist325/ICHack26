@@ -15,7 +15,9 @@ class Settings(BaseSettings):
 
     # Apify configuration
     apify_api_key: str = Field(
-        ..., description="Apify API key for scraper access from console.apify.com"
+        ...,
+        env="APIFY_API_KEY",
+        description="Apify API key for scraper access from console.apify.com",
     )
 
     # Routing service configuration
