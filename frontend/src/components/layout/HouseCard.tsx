@@ -10,7 +10,12 @@ import { IoBed } from "react-icons/io5";
 import { GiHouse } from "react-icons/gi";
 import { FaMoneyBillAlt } from "react-icons/fa";
 import { FaToiletPaper } from "react-icons/fa6";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiStar,
+  FiMessageCircle,
+} from "react-icons/fi";
 import {
   AiOutlineLike,
   AiOutlineDislike,
@@ -378,18 +383,34 @@ export function HouseCard(props: HouseCardProps) {
       setUserVote(voteType);
 
       // Show toast notification
-      if (typeof window !== "undefined" && window.__toastContext) {
-        const message =
-          voteType === "upvote"
-            ? "👍 You upvoted this property!"
-            : "👎 You downvoted this property!";
-        window.__toastContext.addToast(message, "success", 2000);
-      }
+      const message =
+        voteType === "upvote"
+          ? "⭐ Starred this property!"
+          : "❌ Marked as gone from market!";
+      addToast(message, "success", 2000);
     } catch (err) {
       console.error("Failed to vote:", err);
-      if (typeof window !== "undefined" && window.__toastContext) {
-        window.__toastContext.addToast("Failed to record vote", "error", 3000);
+      addToast("Failed to record rating", "error", 3000);
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  const handleToggleBookmark = async () => {
+    setIsVoting(true);
+    try {
+      if (isBookmarked) {
+        await api.unstarProperty(house.id);
+        setIsBookmarked(false);
+        addToast("Removed from bookmarks", "success", 2000);
+      } else {
+        await api.starProperty(house.id);
+        setIsBookmarked(true);
+        addToast("Added to bookmarks", "success", 2000);
       }
+    } catch (err) {
+      console.error("Failed to bookmark:", err);
+      addToast("Failed to update bookmark", "error", 3000);
     } finally {
       setIsVoting(false);
     }
@@ -495,7 +516,6 @@ export function HouseCard(props: HouseCardProps) {
         <Button style={{ color: "#000000ff", backgroundColor: "#49dfb5" }}>
           View more details
         </Button>
-
         <RatingContainer>
           <RatingButton
             isActive={userVote === "upvote"}
@@ -529,6 +549,51 @@ export function HouseCard(props: HouseCardProps) {
             <ScoreDisplay>Score: {house.score.toFixed(1)}</ScoreDisplay>
           )}
         </RatingContainer>
+
+        <ActionBar>
+          <StarButton
+            isBookmarked={isBookmarked}
+            onClick={handleToggleBookmark}
+            disabled={isVoting}
+            title="Add to bookmarks"
+          >
+            {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
+            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+          </StarButton>
+
+          <StatusSelect
+            value={propertyStatus || ""}
+            onChange={(e) =>
+              handleStatusChange((e.target.value as PropertyStatus) || null)
+            }
+            disabled={isUpdatingStatus}
+            title="Track your property status"
+          >
+            <option value="">Set Status...</option>
+            <option value="interested">Interested</option>
+            <option value="viewing">Viewing Scheduled</option>
+            <option value="offer">Made Offer</option>
+            <option value="accepted">Offer Accepted</option>
+          </StatusSelect>
+
+          <CommentsButton
+            onClick={() => setShowComments(!showComments)}
+            title="View and add comments"
+          >
+            <FiMessageCircle size={16} />
+            <span>Comments</span>
+            <CommentCount>({commentCount})</CommentCount>
+          </CommentsButton>
+        </ActionBar>
+
+        {showComments && (
+          <CommentsSection>
+            <p style={{ color: "#999", fontSize: "0.9rem" }}>
+              Comments feature coming soon! This property has {commentCount}{" "}
+              comments.
+            </p>
+          </CommentsSection>
+        )}
       </ContentContainer>
     </CardContainer>
   );
