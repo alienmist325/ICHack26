@@ -613,8 +613,8 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
             return dict(zip([desc[0] for desc in cursor.description], row))
         return None
 
-      
-# ============================================================================      
+
+# ============================================================================
 # Routing/Isochrone Query Functions
 # ============================================================================
 
