@@ -74,8 +74,9 @@ async def get_property(property_id: int):
     return property_obj
 
 
-@app.get("/properties", response_model=List[PropertyWithScore])
+@app.get("/properties", response_model=dict)
 async def list_properties(
+    search_query: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     min_bedrooms: Optional[int] = None,
@@ -85,13 +86,14 @@ async def list_properties(
     outcode: Optional[str] = None,
     removed: bool = False,
     min_score: Optional[float] = None,
-    limit: int = Query(default=100, le=500),
+    limit: int = Query(default=10, le=500),
     offset: int = Query(default=0, ge=0),
 ):
     """
     List properties with optional filters and rating scores.
 
     Results are sorted by rating score (highest first).
+    Supports full-text search across listing title, address, and description.
     """
     filters = PropertyFilters(
         min_price=min_price,
@@ -105,9 +107,20 @@ async def list_properties(
         min_score=min_score,
     )
 
-    return crud.get_properties_with_scores(
-        filters=filters, limit=limit, offset=offset, min_score=min_score
+    properties, total_count = crud.get_properties_with_scores(
+        filters=filters,
+        limit=limit,
+        offset=offset,
+        min_score=min_score,
+        search_query=search_query,
     )
+
+    return {
+        "properties": properties,
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @app.patch("/properties/{property_id}", response_model=Property)
@@ -170,6 +183,7 @@ async def get_property_ratings(
 
 @app.get("/properties/count")
 async def count_properties(
+    search_query: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     min_bedrooms: Optional[int] = None,
@@ -181,6 +195,7 @@ async def count_properties(
 ):
     """Get the total count of properties matching the filters."""
     filters = PropertyFilters(
+        search_query=search_query,
         min_price=min_price,
         max_price=max_price,
         min_bedrooms=min_bedrooms,

@@ -173,6 +173,7 @@ class Rating(BaseModel):
 class PropertyFilters(BaseModel):
     """Schema for filtering properties."""
 
+    search_query: Optional[str] = None  # Full-text search
     min_price: Optional[float] = None
     max_price: Optional[float] = None
     min_bedrooms: Optional[int] = None

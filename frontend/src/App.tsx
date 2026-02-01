@@ -12,6 +12,11 @@ import {
   GlobalDataContext,
   useSetupGlobalData,
 } from "./components/hooks/useSetupGlobalData";
+import {
+  ToastContext,
+  useSetupToast,
+} from "./components/hooks/useToast";
+import { ToastList } from "./components/ui/Toast";
 
 import { GiMushroomHouse } from "react-icons/gi";
 import { NavigationPane } from "./components/layout/NavigationPane";
@@ -50,33 +55,42 @@ const CenteredContainer = styled.div`
 function App() {
   const filter = useSetupFilter();
   const globalData = useSetupGlobalData();
+  const toast = useSetupToast();
 
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const toggleLeftSidebar = () => setLeftSidebarOpen(!leftSidebarOpen);
 
+  // Set global toast context for useToast hook
+  if (typeof window !== 'undefined') {
+    window.__toastContext = toast;
+  }
+
   return (
     <GlobalDataContext.Provider value={globalData}>
       <FilterContext.Provider value={filter}>
-        <AppContainer>
-          <HeaderContainer>
-            <>
-              <CenteredContainer>
-                <GiMushroomHouse />
-                Not Rightmove
-              </CenteredContainer>
+        <ToastContext.Provider value={toast}>
+          <AppContainer>
+            <HeaderContainer>
+              <>
+                <CenteredContainer>
+                  <GiMushroomHouse />
+                  Not Rightmove
+                </CenteredContainer>
 
-              <TopRightCorner>
-                <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
-              </TopRightCorner>
-            </>
-          </HeaderContainer>
-          <NavigationPane
-            leftSidebarOpen={leftSidebarOpen}
-            toggleLeftSidebar={toggleLeftSidebar}
-          ></NavigationPane>
-          <HouseSearch></HouseSearch>
-          <FooterContainer> Made for IC Hack 2026 </FooterContainer>
-        </AppContainer>
+                <TopRightCorner>
+                  <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
+                </TopRightCorner>
+              </>
+            </HeaderContainer>
+            <NavigationPane
+              leftSidebarOpen={leftSidebarOpen}
+              toggleLeftSidebar={toggleLeftSidebar}
+            ></NavigationPane>
+            <HouseSearch></HouseSearch>
+            <FooterContainer> Made for IC Hack 2026 </FooterContainer>
+            <ToastList toasts={toast.toasts} onRemove={toast.removeToast} />
+          </AppContainer>
+        </ToastContext.Provider>
       </FilterContext.Provider>
     </GlobalDataContext.Provider>
   );
