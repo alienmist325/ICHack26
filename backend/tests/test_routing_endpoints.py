@@ -9,15 +9,13 @@ Tests the three routing API endpoints:
 Also tests the GET /properties endpoint with isochrone filtering.
 """
 
-import json
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, patch
+from typing import List
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.main import app, get_routing_service_dep
-from backend.app.schemas import LocationCoordinate, Property, PropertyCreate
 from backend.services.routing_service import RoutingService
 
 # ============================================================================

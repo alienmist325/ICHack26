@@ -14,14 +14,12 @@ These tests:
 import sqlite3
 import tempfile
 from pathlib import Path
-from typing import Generator, Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.main import app, get_routing_service_dep
-from backend.app.database import get_db_connection
 from backend.services.routing_service import RoutingService
 
 # ============================================================================

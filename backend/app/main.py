@@ -14,7 +14,6 @@ from app.schemas import (
     DistanceResult,
     IsochroneRequest,
     IsochroneResponse,
-    LocationCoordinate,
     Property,
     PropertyCreate,
     PropertyFilters,
