@@ -3,7 +3,7 @@
 import asyncio
 import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Dict, Optional, Callable, Any
 from enum import Enum
 
@@ -26,7 +26,7 @@ class VerificationJob:
         self.job_id = str(uuid.uuid4())
         self.property_id = property_id
         self.status = JobStatus.QUEUED
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(UTC)
         self.started_at: Optional[datetime] = None
         self.completed_at: Optional[datetime] = None
         self.error: Optional[str] = None

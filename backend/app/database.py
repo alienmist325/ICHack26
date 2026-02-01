@@ -64,6 +64,12 @@ def init_db() -> None:
     with get_db() as conn:
         cursor = conn.cursor()
 
+        # Check if tables already exist
+        cursor.execute("SELECT count(*) FROM sqlite_master WHERE type='table'")
+        if cursor.fetchone()[0] > 0:
+            # Tables already exist, skip initialization
+            return
+
         # Properties table - stores all Rightmove listing data
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS properties (

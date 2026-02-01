@@ -2,11 +2,11 @@
 import json
 import math
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 from typing import Any, Dict, List, Optional
 
-from app.database import get_db
-from app.schemas import (
+from backend.app.database import get_db
+from backend.app.schemas import (
     Property,
     PropertyCreate,
     PropertyFilters,
@@ -734,7 +734,7 @@ def update_property_verification_status(
             """,
             (
                 verification_status,
-                datetime.utcnow().isoformat(),
+                datetime.now(UTC).isoformat(),
                 verification_notes,
                 property_id,
             ),

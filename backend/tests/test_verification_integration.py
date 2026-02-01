@@ -4,9 +4,9 @@ import pytest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from app.main import app
-from app import crud
-from app.database import init_db, get_db
+from backend.app.main import app
+from backend.app import crud
+from backend.app.database import init_db, get_db
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ class TestVerificationEndpoints:
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    @patch("app.main.settings.elevenlabs_api_key", "")
+    @patch("backend.app.main.settings.elevenlabs_api_key", "")
     def test_start_verification_service_disabled(self, client):
         """Test starting verification when service is disabled."""
         # Create a property with agent phone
@@ -52,7 +52,7 @@ class TestVerificationEndpoints:
         assert response.status_code == 503
         assert "not configured" in response.json()["detail"].lower()
 
-    @patch("app.main.settings.elevenlabs_api_key", "test-key")
+    @patch("backend.app.main.settings.elevenlabs_api_key", "test-key")
     def test_start_verification_success(self, client):
         """Test successfully starting property verification."""
         # Create a property with agent phone
@@ -90,7 +90,7 @@ class TestVerificationEndpoints:
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    @patch("app.main.settings.elevenlabs_api_key", "test-key")
+    @patch("backend.app.main.settings.elevenlabs_api_key", "test-key")
     def test_get_job_status_queued(self, client):
         """Test getting status of queued job."""
         # Create a property with agent phone
@@ -134,7 +134,7 @@ class TestVerificationEndpoints:
         assert "by_status" in data
         assert "total_verifications" in data
 
-    @patch("app.main.settings.elevenlabs_api_key", "test-key")
+    @patch("backend.app.main.settings.elevenlabs_api_key", "test-key")
     def test_full_verification_workflow(self, client):
         """Test complete verification workflow."""
         # Create a property with agent phone

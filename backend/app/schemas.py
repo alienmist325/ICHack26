@@ -298,10 +298,9 @@ class JobStatusEnum(str, Enum):
 class VerificationRequest(BaseModel):
     """Request to verify a property."""
 
-    property_id: int = Field(..., description="Property ID to verify")
+    model_config = ConfigDict(json_schema_extra={"example": {"property_id": 123}})
 
-    class Config:
-        json_schema_extra = {"example": {"property_id": 123}}
+    property_id: int = Field(..., description="Property ID to verify")
 
 
 class VerificationResultResponse(BaseModel):
@@ -321,16 +320,8 @@ class VerificationResultResponse(BaseModel):
 class JobStatusResponse(BaseModel):
     """Response for job status query."""
 
-    job_id: str
-    status: JobStatusEnum
-    created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    result: Optional[VerificationResultResponse] = None
-    error: Optional[str] = None
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "job_id": "550e8400-e29b-41d4-a716-446655440000",
                 "status": "completed",
@@ -346,19 +337,22 @@ class JobStatusResponse(BaseModel):
                 },
             }
         }
+    )
+
+    job_id: str
+    status: JobStatusEnum
+    created_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    result: Optional[VerificationResultResponse] = None
+    error: Optional[str] = None
 
 
 class VerificationStartResponse(BaseModel):
     """Response when verification job is started."""
 
-    job_id: str
-    property_id: int
-    status: JobStatusEnum
-    message: str
-    poll_url: str
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "job_id": "550e8400-e29b-41d4-a716-446655440000",
                 "property_id": 123,
@@ -367,6 +361,13 @@ class VerificationStartResponse(BaseModel):
                 "poll_url": "/api/verify/job/550e8400-e29b-41d4-a716-446655440000",
             }
         }
+    )
+
+    job_id: str
+    property_id: int
+    status: JobStatusEnum
+    message: str
+    poll_url: str
 
 
 class PropertyVerificationStatus(BaseModel):
