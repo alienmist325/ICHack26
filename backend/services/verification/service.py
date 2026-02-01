@@ -36,6 +36,133 @@ def _analyze_transcript(
     # Normalize transcript for matching
     lower_transcript = transcript.lower()
 
+    # PRIORITY 1: Extract and analyze user responses first (highest priority)
+    # This prevents matching keywords in questions
+    import re
+
+    user_response_patterns = [
+        r'\buser:\s*["\']?(\w+)["\']?',  # "user: No." or user: Yes
+        r'\b(?:caller|user|prospect|tenant|buyer)(?:\s+(?:said|responded|replied))?\s*["\']?(\w+)["\']?',
+    ]
+
+    user_statements = []
+    for pattern in user_response_patterns:
+        matches = re.findall(pattern, lower_transcript)
+        user_statements.extend(matches)
+
+    logger.debug(f"Extracted user statements: {user_statements}")
+
+    # Check simple yes/no responses from user (HIGHEST PRIORITY)
+    for statement in user_statements:
+        if statement in ["no", "nope", "nope.", "no."]:
+            logger.info(f"Detected user 'no' response: '{statement}' → UNAVAILABLE")
+            return VerificationStatus.UNAVAILABLE
+        elif statement in ["yes", "yes.", "yep", "yep."]:
+            logger.info(f"Detected user 'yes' response: '{statement}' → AVAILABLE")
+            return VerificationStatus.AVAILABLE
+
+    # PRIORITY 2: Check for unavailable keywords (from agent's response)
+    unavailable_keywords = [
+        "sold",
+        "let",
+        "rented",
+        "taken",
+        "no longer available",
+        "off market",
+        "withdrawn",
+        "delisted",
+        "no longer listed",
+        "already sold",
+        "already rented",
+        "no longer for rent",
+        "no longer for sale",
+        "no longer selling",
+        "been let",
+        "been rented",
+    ]
+
+    for keyword in unavailable_keywords:
+        if keyword in lower_transcript:
+            logger.info(f"Found unavailable keyword: '{keyword}'")
+            return VerificationStatus.UNAVAILABLE
+
+    # PRIORITY 3: Check for available keywords (from agent's response)
+    available_keywords = [
+        "yes",
+        "available",
+        "still available",
+        "still listed",
+        "still on market",
+        "on the market",
+        "can show",
+        "can view",
+        "can arrange a viewing",
+        "viewing available",
+        "listed",
+        "listing is active",
+        "still have",
+        "still selling",
+        "haven't sold",
+        "actively marketing",
+        "great opportunity",
+    ]
+
+    for keyword in available_keywords:
+        if keyword in lower_transcript:
+            logger.info(f"Found available keyword: '{keyword}'")
+            return VerificationStatus.AVAILABLE
+
+    # PRIORITY 4: Check for unsure keywords (from agent's response)
+    unsure_keywords = [
+        "not sure",
+        "i think so",
+        "maybe",
+        "i believe so",
+        "might be",
+        "need to check",
+        "let me check",
+        "not entirely sure",
+        "i'm not certain",
+        "can't find",
+    ]
+
+    for keyword in unsure_keywords:
+        if keyword in lower_transcript:
+            logger.info(f"Found unsure keyword: '{keyword}'")
+            return VerificationStatus.UNSURE
+
+    # PRIORITY 5: Advanced pattern-based analysis for more nuanced responses
+
+    # Look for negation patterns (context-aware)
+    negation_patterns = [
+        r"(?:it\'s not|isn\'t|not)\s+(?:available|listed|on the market|for sale)",
+        r"(?:don\'t have|can\'t find|couldn\'t locate)\s+(?:that|this|the property)",
+        r"(?:no longer|not anymore|never)\s+(?:available|listed|for sale|for rent)",
+    ]
+
+    for pattern in negation_patterns:
+        if re.search(pattern, lower_transcript):
+            logger.info(f"Detected negation pattern: {pattern}")
+            return VerificationStatus.UNAVAILABLE
+
+    # Look for affirmation patterns
+    affirmation_patterns = [
+        r"(?:we still have|we\'re still|we continue to|currently\s+(?:have|list))",
+        r"(?:still\s+(?:available|listed|on\s+market))",
+    ]
+
+    for pattern in affirmation_patterns:
+        if re.search(pattern, lower_transcript):
+            logger.info(f"Detected affirmation pattern: {pattern}")
+            return VerificationStatus.AVAILABLE
+
+    # If no patterns matched, status is UNSURE
+    logger.info("No clear patterns matched in transcript")
+    return VerificationStatus.UNSURE
+
+    # Normalize transcript for matching
+    lower_transcript = transcript.lower()
+
     # Keywords indicating property is AVAILABLE
     available_keywords = [
         "yes",
