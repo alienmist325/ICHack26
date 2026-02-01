@@ -157,7 +157,7 @@ class ApiClient {
 
   async getTravelTimes(body: TravelTimeRequest): Promise<TravelTimeResponse> {
     const response = await fetch(`${this.baseUrl}/routing/travel-times`, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },

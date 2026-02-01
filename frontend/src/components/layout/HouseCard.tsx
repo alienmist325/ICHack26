@@ -30,7 +30,7 @@ export interface HouseCardProps {
   house: House;
 }
 
-const CardContainer = styled.div`
+export const CardContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 2rem;

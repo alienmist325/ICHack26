@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { api, LocationCoordinate, TravelTimeResult } from "../../api/client";
+import { api, TravelTimeResult } from "../../api/client";
+import { useGlobalData } from "../hooks/useGlobalData";
+import { useToast } from "../hooks/useToast";
+import { CardContainer } from "./HouseCard";
 
 export function TravelTimeDisplay({ property_id }: { property_id: number }) {
   const [travelTimes, setTravelTimes] = useState<
@@ -7,44 +10,51 @@ export function TravelTimeDisplay({ property_id }: { property_id: number }) {
   >(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const { keyLocations } = useGlobalData();
+
+  const { addToast } = useToast();
+
+  console.log(isLoading);
+
   useEffect(() => {
-    const storedKeyLocations = localStorage.getItem("key_locations");
-    if (storedKeyLocations) {
-      const parsed = JSON.parse(storedKeyLocations) as LocationCoordinate[];
+    const parsed = keyLocations;
 
-      setIsLoading(true);
+    setIsLoading(true);
 
-      api
-        .getTravelTimes({
-          property_id,
-          destinations: parsed,
-        })
-        .then((response) => {
-          setTravelTimes(response.results);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          console.error("Failed to parse stored tokens:", err);
-          localStorage.removeItem("auth_tokens");
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
+    api
+      .getTravelTimes({
+        property_id,
+        destinations: parsed,
+      })
+      .then((response) => {
+        console.log(response.results);
+        setTravelTimes(response.results);
+        addToast("Successfully computed routes to key locations", "success");
+      })
+      .catch((err) => {
+        console.error("Failed to parse key locations:", err);
+        addToast("Failed to parse key locations", "error");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   return (
-    <>
+    <CardContainer>
       {isLoading ? (
         <div>Loading...</div>
-      ) : (
-        travelTimes?.map((travelTime) => {
+      ) : travelTimes ? (
+        travelTimes.map((travelTime) => (
           <div>
-            {travelTime.destination.label} is {travelTime.travel_time_minutes}{" "}
-            minutes and {travelTime.travel_time_seconds} seconds away
-          </div>;
-        })
+            {travelTime.destination.label} is{" "}
+            {travelTime.travel_time_minutes.toPrecision(2) + " "}
+            minutes away
+          </div>
+        ))
+      ) : (
+        <div> You haven't specified any key locations yet. </div>
       )}
-    </>
+    </CardContainer>
   );
 }

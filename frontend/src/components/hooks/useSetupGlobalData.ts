@@ -18,6 +18,11 @@ export function useSetupGlobalData(): GlobalData {
   const [currentFilters, setCurrentFilters] = useState<any>(null);
   const [keyLocations, setKeyLocations] = useState<LocationCoordinate[]>([]);
 
+  const wrappedKeyLocations = (keyLocations: LocationCoordinate[]) => {
+    setKeyLocations(keyLocations);
+    localStorage.setItem("key_locations", JSON.stringify(keyLocations));
+  };
+
   // Fetch properties on mount
   useEffect(() => {
     fetchProperties(0, currentFilters);
@@ -94,6 +99,16 @@ export function useSetupGlobalData(): GlobalData {
     setCurrentPageState(0);
   };
 
+  useEffect(() => {
+    const storedKeyLocations = localStorage.getItem("key_locations");
+    console.log(storedKeyLocations);
+    if (storedKeyLocations) {
+      const parsed = JSON.parse(storedKeyLocations) as LocationCoordinate[];
+      console.log(parsed);
+      setKeyLocations(parsed);
+    }
+  }, []);
+
   return {
     randomConfig,
     setRandomConfig,
@@ -111,6 +126,6 @@ export function useSetupGlobalData(): GlobalData {
     updateFiltersAndFetch,
     setHousesWithFilters,
     keyLocations,
-    setKeyLocations,
+    setKeyLocations: wrappedKeyLocations,
   };
 }

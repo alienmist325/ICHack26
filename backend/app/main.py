@@ -547,6 +547,7 @@ async def get_travel_times_endpoint(
         HTTPException 503: If routing service is unavailable
     """
     try:
+        print(request)
         # Validate request
         if len(request.destinations) > 25:
             raise HTTPException(

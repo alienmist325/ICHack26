@@ -13,7 +13,7 @@ export interface GlobalDataStates {
   houses: House[];
   totalCount: number;
   currentPage: number;
-  pageSize: number;
+  pageSize?: number;
   isLoading: boolean;
   error: string | null;
   keyLocations: LocationCoordinate[];
