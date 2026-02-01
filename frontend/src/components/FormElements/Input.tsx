@@ -20,7 +20,17 @@ export const Input = styled.input`
     outline: none;
     border-color: ${colors.teal};
     background-color: ${colors.white};
-    box-shadow: 0 0 0 3px rgba(73, 223, 181, 0.1);
+    box-shadow: 0 0 0 3px rgba(73, 223, 181, 0.1), 0 0 12px rgba(73, 223, 181, 0.15);
+    animation: focusGlow ${animations.base};
+  }
+
+  @keyframes focusGlow {
+    from {
+      box-shadow: 0 0 0 0 rgba(73, 223, 181, 0.2);
+    }
+    to {
+      box-shadow: 0 0 0 3px rgba(73, 223, 181, 0.1), 0 0 12px rgba(73, 223, 181, 0.15);
+    }
   }
 
   &:disabled {
