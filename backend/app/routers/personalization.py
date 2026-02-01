@@ -96,8 +96,8 @@ async def get_personalized_feed(
         """
         SELECT bio, dream_property_description, preferred_price_min, preferred_price_max,
                preferred_bedrooms_min, preferred_property_types, preferred_locations
-        FROM user_profiles
-        WHERE user_id = ?
+        FROM users
+        WHERE id = ?
         """,
         (current_user.id,),
     )

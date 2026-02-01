@@ -98,7 +98,6 @@ def clear_database(test_db_path, request):
             "shared_feeds",
             "refresh_tokens",
             "oauth_providers",
-            "user_profiles",
             "users",
             "ratings",
             "properties",

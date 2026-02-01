@@ -85,13 +85,6 @@ async def register(user_data: UserRegister, db: sqlite3.Connection = Depends(get
     if user_id == 0:
         raise HTTPException(status_code=500, detail="Failed to create user")
 
-    # Create default user profile
-    cursor.execute(
-        """INSERT INTO user_profiles (user_id) VALUES (?)""",
-        (user_id,),
-    )
-    db.commit()
-
     # Generate tokens
     token_response = create_token_pair(user_id, user_data.email)
     return token_response

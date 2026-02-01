@@ -24,13 +24,13 @@ from app.crud import (
 
 @pytest.mark.auth
 @pytest.mark.integration
-class TestUserProfileEndpoints:
-    """Test user profile API endpoints."""
+class TestUsersEndpoints:
+    """Test users API endpoints."""
 
     def test_update_profile_endpoint(self, authenticated_client, test_user):
         """Test updating profile via API."""
         response = authenticated_client.put(
-            "/users/profile",
+            "/users",
             json={
                 "bio": "Updated bio",
                 "preferences": {
@@ -53,15 +53,15 @@ class TestUserProfileEndpoints:
 
     def test_profile_endpoint_requires_auth(self, client):
         """Test that profile endpoints require authentication."""
-        response = client.get("/users/profile")
+        response = client.get("/users")
         assert response.status_code == 401
 
-        response = client.put("/users/profile", json={"bio": "test"})
+        response = client.put("/users", json={"bio": "test"})
         assert response.status_code == 401
 
     def test_delete_account_endpoint(self, authenticated_client, test_user):
         """Test account deletion via API."""
-        response = authenticated_client.delete("/users/profile")
+        response = authenticated_client.delete("/users")
 
         assert response.status_code == 200
 
