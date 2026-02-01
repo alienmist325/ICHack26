@@ -132,7 +132,11 @@ class MockBlandAIClient:
 
                 # Only generate transcript once
                 if result.transcript is None:
-                    result.transcript = self._generate_mock_transcript()
+                    # Generate in Bland AI format with "user:" prefix
+                    transcript_text = self._generate_mock_transcript()
+                    result.transcript = self._format_as_bland_transcript(
+                        transcript_text
+                    )
                     result.duration = int(simulated_duration)
                     result.status = "completed"
                     result.success = True
@@ -199,7 +203,11 @@ class MockBlandAIClient:
 
                 # Only generate transcript once
                 if result.transcript is None:
-                    result.transcript = self._generate_mock_transcript()
+                    # Generate in Bland AI format with "user:" prefix
+                    transcript_text = self._generate_mock_transcript()
+                    result.transcript = self._format_as_bland_transcript(
+                        transcript_text
+                    )
                     result.duration = int(simulated_duration)
                     result.status = "completed"
                     result.success = True
@@ -295,5 +303,46 @@ class MockBlandAIClient:
             # 25% chance: UNSURE
             transcript = random.choice(unsure)
             logger.debug("[MOCK] Generated UNSURE transcript")
+
+        return transcript
+
+    def _format_as_bland_transcript(self, agent_response: str) -> str:
+        """Format a response as a Bland AI concatenated transcript.
+
+        Matches the format: "user: <response>" or "user: Yes/No."
+        This format is what the real Bland AI API returns.
+
+        Args:
+            agent_response: The agent's response text
+
+        Returns:
+            Formatted transcript matching Bland AI API output
+        """
+        # For now, generate a simple Yes/No response from user
+        # In reality, would extract from agent_response
+        user_responses = ["Yes.", "No.", "Maybe.", "I think so."]
+
+        # If agent_response contains availability keywords, pick appropriate user response
+        lower_response = agent_response.lower()
+
+        if any(
+            word in lower_response
+            for word in ["available", "have", "still", "selling", "marketing"]
+        ):
+            user_response = random.choice(["Yes.", "Yes, absolutely.", "I believe so."])
+        elif any(
+            word in lower_response
+            for word in ["sold", "rented", "let", "off market", "no longer"]
+        ):
+            user_response = random.choice(["No.", "Nope.", "No, not anymore."])
+        else:
+            user_response = random.choice(user_responses)
+
+        # Format in Bland AI concatenated transcript style
+        # "A:" or "assistant:" for agent, "user:" for caller
+        transcript = f"""A: {agent_response}
+ user: {user_response}
+ assistant: Thank you for your time.
+ agent-action: Ended call"""
 
         return transcript

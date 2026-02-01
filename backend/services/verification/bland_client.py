@@ -97,18 +97,24 @@ class BlandAIClient:
             logger.debug(f"Bland AI API response: {data}")
 
             # Map API response to BlandCallResult
-            # Bland AI returns: call_id, status, duration, transcript, success, data, etc.
+            # Bland AI API returns: concatenated_transcript (or transcript in some versions)
+            # Also returns call_length (not duration), status, etc.
+            transcript = data.get("concatenated_transcript") or data.get("transcript")
+
             result = BlandCallResult(
                 call_id=call_id,
                 status=data.get("status", "unknown"),
-                duration=data.get("duration", 0),
-                transcript=data.get("transcript"),
+                duration=int(data.get("call_length", 0))
+                if data.get("call_length")
+                else 0,
+                transcript=transcript,
                 success=data.get("success", False),
                 data=data.get("data"),
             )
             logger.debug(
-                f"Parsed BlandCallResult: call_id={result.call_id}, status={result.status}, duration={result.duration}"
+                f"Parsed BlandCallResult: call_id={result.call_id}, status={result.status}, duration={result.duration}s"
             )
+            logger.debug(f"Transcript: {transcript[:200] if transcript else 'None'}...")
             return result
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get Bland AI call result: {e}")
