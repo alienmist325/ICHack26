@@ -123,7 +123,7 @@ const ArrowButton = styled.button`
 
   background: rgba(255, 255, 255, 0.8);
   width: 40px;
-  height: 30px;
+  height: 32px;
   justify-content: center;
   transition: background 0.2s ease;
 
