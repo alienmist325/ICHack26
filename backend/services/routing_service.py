@@ -384,74 +384,28 @@ def properties_in_polygon(
 
 
 # ============================================================================
-# Module-level Singleton & Convenience Functions
+# Module-level Exports
 # ============================================================================
-
-_service: Optional[RoutingService] = None
-
-
-def get_routing_service() -> RoutingService:
-    """
-    Get or create the singleton routing service instance.
-
-    Returns:
-        RoutingService instance
-    """
-    global _service
-    if _service is None:
-        _service = RoutingService()
-    return _service
-
-
-def compute_isochrone(
-    lat: float, lon: float, duration_seconds: int
-) -> Optional[Dict[str, Any]]:
-    """
-    Convenience function to compute an isochrone using the singleton service.
-
-    Args:
-        lat: Latitude of center point
-        lon: Longitude of center point
-        duration_seconds: Time limit in seconds
-
-    Returns:
-        GeoJSON-formatted isochrone polygon, or None if computation fails
-    """
-    service = get_routing_service()
-    return service.compute_isochrone(lat, lon, duration_seconds)
-
-
-def get_travel_times(
-    origin: Tuple[float, float],
-    destinations: List[Tuple[float, float]],
-) -> List[Dict[str, Any]]:
-    """
-    Convenience function to compute travel times using the singleton service.
-
-    Args:
-        origin: (lat, lon) tuple for origin
-        destinations: List of (lat, lon) tuples for destinations
-
-    Returns:
-        List of dicts with travel times and destination coordinates
-    """
-    service = get_routing_service()
-    return service.get_travel_times_matrix(origin, destinations)
-
-
-def get_distances(
-    origin: Tuple[float, float],
-    destinations: List[Tuple[float, float]],
-) -> List[Dict[str, Any]]:
-    """
-    Convenience function to compute distances using the singleton service.
-
-    Args:
-        origin: (lat, lon) tuple for origin
-        destinations: List of (lat, lon) tuples for destinations
-
-    Returns:
-        List of dicts with distances and destination coordinates
-    """
-    service = get_routing_service()
-    return service.get_distances_matrix(origin, destinations)
+# The RoutingService class is designed to be used with FastAPI dependency
+# injection. Initialize a single instance during app startup and inject it
+# into endpoints via FastAPI's Depends() mechanism.
+#
+# Example in main.py:
+#
+#   @asynccontextmanager
+#   async def lifespan(app: FastAPI):
+#       global routing_service
+#       routing_service = RoutingService()
+#       yield
+#
+#   def get_routing_service_dep() -> RoutingService:
+#       if routing_service is None:
+#           raise RuntimeError("Routing service not initialized")
+#       return routing_service
+#
+#   @app.post("/routing/isochrone")
+#   async def find_properties_in_isochrone(
+#       request: IsochroneRequest,
+#       service: RoutingService = Depends(get_routing_service_dep)
+#   ):
+#       # Use service directly

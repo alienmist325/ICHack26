@@ -3,7 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import crud
@@ -30,19 +30,49 @@ from backend.models.rightmove import RightmoveScraperInput
 from backend.scraper.scrape import scrape_rightmove
 from backend.services.routing_service import (
     RoutingService,
-    compute_isochrone,
     properties_in_polygon,
 )
 
 logger = logging.getLogger(__name__)
 
+# ============================================================================
+# Global state for routing service (initialized in lifespan)
+# ============================================================================
+_routing_service: Optional[RoutingService] = None
+
+
+def get_routing_service_dep() -> RoutingService:
+    """
+    Dependency for accessing the routing service instance.
+
+    Used with FastAPI's Depends() to inject the routing service into endpoints.
+    Ensures the service is properly initialized before use.
+
+    Raises:
+        RuntimeError: If routing service was not initialized during app startup
+
+    Returns:
+        RoutingService: The initialized routing service instance
+    """
+    if _routing_service is None:
+        raise RuntimeError(
+            "Routing service not initialized. "
+            "This should not happen if the app started correctly."
+        )
+    return _routing_service
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize database
+    # Startup: Initialize database and routing service
+    global _routing_service
     init_db()
+    _routing_service = RoutingService()
+    logger.info("Routing service initialized at app startup")
     yield
-    # Shutdown: Nothing to clean up for SQLite
+    # Shutdown: Clean up
+    _routing_service = None
+    logger.info("Routing service shutdown")
 
 
 app = FastAPI(
@@ -104,6 +134,7 @@ async def list_properties(
     isochrone_duration_seconds: int = 600,
     limit: int = Query(default=10, le=500),
     offset: int = Query(default=0, ge=0),
+    routing_service: RoutingService = Depends(get_routing_service_dep),
 ):
     """
     List properties with optional filters and rating scores.
@@ -429,13 +460,11 @@ async def scrape_properties(config: RightmoveScraperInput):
 # ============================================================================
 
 
-# Initialize routing service
-routing_service = RoutingService()
-logger.info("Routing service initialized")
-
-
 @app.post("/routing/isochrone", response_model=IsochroneResponse)
-async def find_properties_in_isochrone(request: IsochroneRequest):
+async def find_properties_in_isochrone(
+    request: IsochroneRequest,
+    routing_service: RoutingService = Depends(get_routing_service_dep),
+):
     """
     Find all properties reachable from a property within a given time duration.
 
@@ -512,7 +541,10 @@ async def find_properties_in_isochrone(request: IsochroneRequest):
 
 
 @app.post("/routing/travel-times", response_model=TravelTimeResponse)
-async def get_travel_times_endpoint(request: TravelTimeRequest):
+async def get_travel_times_endpoint(
+    request: TravelTimeRequest,
+    routing_service: RoutingService = Depends(get_routing_service_dep),
+):
     """
     Calculate travel times from a property to multiple destinations.
 
@@ -602,7 +634,10 @@ async def get_travel_times_endpoint(request: TravelTimeRequest):
 
 
 @app.post("/routing/distances", response_model=DistanceResponse)
-async def get_distances_endpoint(request: DistanceRequest):
+async def get_distances_endpoint(
+    request: DistanceRequest,
+    routing_service: RoutingService = Depends(get_routing_service_dep),
+):
     """
     Calculate distances from a property to multiple destinations.
 
