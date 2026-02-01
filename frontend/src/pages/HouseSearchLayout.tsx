@@ -36,17 +36,28 @@ const ContentWrapper = styled.div`
   flex-direction: column;
 `;
 
-const SidebarButton = styled(Button)`
-  background-color: ${colors.teal};
-  margin-left: 12px;
-  border: 2px solid ${colors.teal};
-  color: white;
+const SidebarButton = styled.button`
+  background: none;
+  border: none;
+  color: ${colors.medText};
+  cursor: pointer;
+  font-size: 1.5rem;
   transition: all ${animations.base};
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin-left: 8px;
 
   &:hover {
-    background-color: ${colors.white};
     color: ${colors.teal};
+    background-color: ${colors.teal}15;
     transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -84,59 +95,53 @@ const LogoIcon = styled.div`
   }
 `;
 
-const UserInfo = styled.div`
+
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  color: ${colors.medText};
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all ${animations.base};
+  padding: 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: ${colors.medText};
-  font-size: 14px;
-`;
+  justify-content: center;
+  border-radius: 8px;
 
-const UserEmail = styled.span`
-  font-weight: 500;
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  &:hover {
+    color: ${colors.teal};
+    background-color: ${colors.teal}15;
+    transform: translateY(-2px);
+  }
 
-  @media (max-width: 768px) {
-    display: none;
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
-const UserButton = styled(Button)`
-  background-color: transparent;
-  color: ${colors.teal};
+const AccountIcon = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: ${colors.teal}20;
   border: 2px solid ${colors.teal};
-  padding: 8px 12px;
-  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: ${colors.teal};
+  cursor: pointer;
   transition: all ${animations.base};
 
   &:hover {
-    background-color: ${colors.teal};
-    color: white;
-    transform: translateY(-2px);
+    background-color: ${colors.teal}30;
+    transform: scale(1.05);
   }
-`;
 
-const LogoutButton = styled(UserButton)`
-  border-color: ${colors.error};
-  color: ${colors.error};
-
-  &:hover {
-    background-color: ${colors.error};
-  }
-`;
-
-const SettingsButton = styled(UserButton)`
-  border-color: ${colors.purple};
-  color: ${colors.purple};
-
-  &:hover {
-    background-color: ${colors.purple};
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -165,22 +170,25 @@ export function HouseSearchLayout() {
 
           <TopRightCorner>
             {user && (
-              <UserInfo>
-                <UserButton onClick={() => navigate('/profile')}>
-                  <FiUser />
-                  <span>Profile</span>
-                </UserButton>
-                <SettingsButton onClick={() => navigate('/settings')}>
-                  <FiSettings />
-                  <span>Settings</span>
-                </SettingsButton>
-                <UserEmail title={user.email}>{user.email}</UserEmail>
-              </UserInfo>
+              <AccountIcon 
+                onClick={() => navigate('/profile')} 
+                title={user.email}
+              >
+                <FiUser />
+              </AccountIcon>
             )}
-            <LogoutButton onClick={handleLogout}>
+            <IconButton 
+              onClick={() => navigate('/settings')} 
+              title="Settings"
+            >
+              <FiSettings />
+            </IconButton>
+            <IconButton 
+              onClick={handleLogout}
+              title="Logout"
+            >
               <FiLogOut />
-              <span>Logout</span>
-            </LogoutButton>
+            </IconButton>
             <SidebarButton onClick={toggleLeftSidebar}>☰</SidebarButton>
           </TopRightCorner>
         </>
