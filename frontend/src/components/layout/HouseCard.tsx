@@ -505,30 +505,6 @@ export function HouseCard(props: HouseCardProps) {
           {house.price.toLocaleString()}
         </InfoRow>
 
-        <InfoRow>
-          <FaMoneyBillAlt /> <strong>Price:</strong> £
-          {house.price.toLocaleString()}
-        </InfoRow>
-
-        {house.bedrooms !== undefined && (
-          <InfoRow>
-            <IoBed /> <strong>Bedrooms:</strong> {house.bedrooms}
-          </InfoRow>
-        )}
-
-        {house.bathrooms !== undefined && (
-          <InfoRow>
-            <FaToiletPaper /> <strong>Bathrooms:</strong> {house.bathrooms}
-          </InfoRow>
-        )}
-
-        {house.features && house.features.length > 0 && (
-          <Features>
-            {house.features.map((feature, index) => (
-              <li key={index}>{feature}</li>
-            ))}
-          </Features>
-        )}
         <Button
           onClick={() => handleNavigation(`/house/${house.id}`)}
           style={{ color: "#000000ff", backgroundColor: "#49dfb5" }}

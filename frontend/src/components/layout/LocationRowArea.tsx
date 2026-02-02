@@ -75,8 +75,6 @@ export function LocationRowArea({
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
-      //   setError(null);
-      //   setSuccess(false);
 
       // Add the index if it doesn't exist
       const latLong = await api.getLatLong({ address: inputLocation.address });
@@ -84,15 +82,11 @@ export function LocationRowArea({
         ...keyLocations,
         { label: inputLocation.label, ...latLong },
       ]);
-      //   setSuccess(true);
       addToast("Key address added successfully!", "success");
-
-      //   setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.log(err);
       const errorMsg =
         err instanceof Error ? err.message : "Key address was not valid";
-      //   setError(errorMsg);
       addToast(errorMsg, "error");
     } finally {
       setSaving(false);

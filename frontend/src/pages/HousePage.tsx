@@ -587,13 +587,13 @@ export function HousePage() {
           <StarButton
             isBookmarked={isBookmarked}
             onClick={() => {
-              api.verifyProperty("2");
+              api.verifyProperty("1");
             }}
             disabled={isVoting}
-            title="Add to bookmarks"
+            title="Verify"
           >
             {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
-            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+            <span>{isBookmarked ? "Verify" : "Verify"}</span>
           </StarButton>
 
           <StatusSelect
