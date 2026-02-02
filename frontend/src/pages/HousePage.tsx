@@ -25,6 +25,7 @@ import {
 } from "react-icons/ai";
 import { FiHome, FiBox } from "react-icons/fi";
 import { BsStarFill } from "react-icons/bs";
+import { TravelTimeDisplay } from "../components/layout/TravelTimeDisplay";
 
 export interface HouseCardProps {
   house: House;
@@ -568,6 +569,10 @@ export function HousePage() {
           )}
         </RatingContainer>
 
+        <InfoRow>
+          <TravelTimeDisplay property_id={1}></TravelTimeDisplay>
+        </InfoRow>
+
         <ActionBar>
           <StarButton
             isBookmarked={isBookmarked}
@@ -577,6 +582,18 @@ export function HousePage() {
           >
             {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
             <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+          </StarButton>
+
+          <StarButton
+            isBookmarked={isBookmarked}
+            onClick={() => {
+              api.verifyProperty("1");
+            }}
+            disabled={isVoting}
+            title="Verify"
+          >
+            {isBookmarked ? <BsStarFill size={16} /> : <FiStar size={16} />}
+            <span>{isBookmarked ? "Verify" : "Verify"}</span>
           </StarButton>
 
           <StatusSelect

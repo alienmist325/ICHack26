@@ -2,17 +2,21 @@ import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { FiArrowLeft, FiSave, FiTrash2 } from "react-icons/fi";
+import { FiSave, FiTrash2, FiPlus } from "react-icons/fi";
 import { api } from "../api/client";
 import { useToast } from "../components/hooks/useToast";
-import BackgroundPattern from "../components/BackgroundPattern";
 import Button from "../components/FormElements/Button";
 import FormInput from "../components/FormElements/Input";
 import CardComponent from "../components/FormElements/Card";
 import PageHeader from "../components/PageHeader";
-import { colors, spacing, animations } from "../constants";
+import { colors } from "../constants";
 import UnifiedHeader from "../components/layout/UnifiedHeader";
 import { FooterContainer } from "../components/layout/FooterContainer";
+import {
+  InputLocation,
+  LocationRowArea,
+} from "../components/layout/LocationRowArea";
+import { useGlobalData } from "../components/hooks/useGlobalData";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -82,6 +86,33 @@ const Label = styled.label`
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+`;
+
+export const Input = styled.input`
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: #f7fafc;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: #cbd5e0;
+  }
 `;
 
 const Textarea = styled.textarea`
@@ -224,16 +255,27 @@ export function ProfilePage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [minBedrooms, setMinBedrooms] = useState("");
   const [maxBedrooms, setMaxBedrooms] = useState("");
+  const [locationAddresses, setLocationAddresses] = useState<InputLocation[]>(
+    []
+  );
   const [locations, setLocations] = useState("");
-  const [notificationViewingReminder, setNotificationViewingReminder] = useState("3");
-  const [notificationEmailEnabled, setNotificationEmailEnabled] = useState(true);
-  const [notificationInAppEnabled, setNotificationInAppEnabled] = useState(true);
-  const [notificationFeedChangesEnabled, setNotificationFeedChangesEnabled] = useState(true);
+  const [notificationViewingReminder, setNotificationViewingReminder] =
+    useState("3");
+  const [notificationEmailEnabled, setNotificationEmailEnabled] =
+    useState(true);
+  const [notificationInAppEnabled, setNotificationInAppEnabled] =
+    useState(true);
+  const [notificationFeedChangesEnabled, setNotificationFeedChangesEnabled] =
+    useState(true);
 
   // Load profile on mount
   useEffect(() => {
     loadProfile();
   }, [user]);
+
+  useEffect(() => {
+    setKeyLocations([]);
+  }, []);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -251,7 +293,7 @@ export function ProfilePage() {
       setMaxPrice(profile.preferred_price_max?.toString() || "");
       setMinBedrooms(profile.preferred_bedrooms_min?.toString() || "");
       setLocations((profile.preferred_locations || []).join(", "));
-      
+
       // Notification settings
       setNotificationViewingReminder(
         profile.notification_viewing_reminder_days?.toString() || "3"
@@ -271,6 +313,38 @@ export function ProfilePage() {
     }
   };
 
+  const { keyLocations, setKeyLocations } = useGlobalData();
+
+  const addLocation = () => {
+    setLocationAddresses([...locationAddresses, { label: "", address: "" }]);
+  };
+
+  const removeLocation = (index: number) => {
+    const newLocations = [...locationAddresses];
+    const deletedLocation = newLocations.splice(index, 1);
+    setLocationAddresses(newLocations);
+
+    // Find the entry with the same label and remove that from the key locations
+    const newKeyLocations = keyLocations.filter(
+      (value) => value.label === deletedLocation[0].label
+    );
+    setKeyLocations(newKeyLocations);
+  };
+
+  const updateLocationAddress = (index: number, address: string) => {
+    const newLocations = [...locationAddresses];
+    const currentLocation = newLocations[index];
+    newLocations[index] = { ...currentLocation, address };
+    setLocationAddresses(newLocations);
+  };
+
+  const updateLocationLabel = (index: number, label: string) => {
+    const newLocations = [...locationAddresses];
+    const currentLocation = newLocations[index];
+    newLocations[index] = { ...currentLocation, label };
+    setLocationAddresses(newLocations);
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
 
@@ -285,10 +359,11 @@ export function ProfilePage() {
         preferred_price_min: minPrice ? parseInt(minPrice) : undefined,
         preferred_price_max: maxPrice ? parseInt(maxPrice) : undefined,
         preferred_bedrooms_min: minBedrooms ? parseInt(minBedrooms) : undefined,
-        preferred_locations: locations
-          .split(",")
-          .map((l) => l.trim())
-          .filter((l) => l) || undefined,
+        preferred_locations:
+          locations
+            .split(",")
+            .map((l) => l.trim())
+            .filter((l) => l) || undefined,
         notification_viewing_reminder_days: notificationViewingReminder
           ? parseInt(notificationViewingReminder)
           : 3,
@@ -450,7 +525,6 @@ export function ProfilePage() {
                   </div>
                 </div>
               </FormGroup>
-
               <FormGroup>
                 <Label>Preferred Locations</Label>
                 <FormInput
@@ -460,6 +534,28 @@ export function ProfilePage() {
                   onChange={(e) => setLocations(e.target.value)}
                   disabled={saving}
                 />
+              </FormGroup>
+
+              <FormGroup>
+                <Label>Key Locations</Label>
+                {locationAddresses.map((location, index) => (
+                  <LocationRowArea
+                    inputLocation={location}
+                    index={index}
+                    key={index}
+                    removeLocation={removeLocation}
+                    updateLocationAddress={updateLocationAddress}
+                    updateLocationLabel={updateLocationLabel}
+                  ></LocationRowArea>
+                ))}
+                <Button
+                  type="button"
+                  onClick={addLocation}
+                  disabled={saving}
+                  style={{ marginTop: "8px", width: "100%" }}
+                >
+                  <FiPlus /> Add Location
+                </Button>
               </FormGroup>
             </Section>
 
@@ -474,7 +570,9 @@ export function ProfilePage() {
                   min="1"
                   max="30"
                   value={notificationViewingReminder}
-                  onChange={(e) => setNotificationViewingReminder(e.target.value)}
+                  onChange={(e) =>
+                    setNotificationViewingReminder(e.target.value)
+                  }
                   disabled={saving}
                 />
               </FormGroup>
@@ -483,7 +581,9 @@ export function ProfilePage() {
                 <input
                   type="checkbox"
                   checked={notificationEmailEnabled}
-                  onChange={(e) => setNotificationEmailEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    setNotificationEmailEnabled(e.target.checked)
+                  }
                   disabled={saving}
                 />
                 Email notifications enabled
@@ -493,7 +593,9 @@ export function ProfilePage() {
                 <input
                   type="checkbox"
                   checked={notificationInAppEnabled}
-                  onChange={(e) => setNotificationInAppEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    setNotificationInAppEnabled(e.target.checked)
+                  }
                   disabled={saving}
                 />
                 In-app notifications enabled
@@ -503,7 +605,9 @@ export function ProfilePage() {
                 <input
                   type="checkbox"
                   checked={notificationFeedChangesEnabled}
-                  onChange={(e) => setNotificationFeedChangesEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    setNotificationFeedChangesEnabled(e.target.checked)
+                  }
                   disabled={saving}
                 />
                 Notify me when shared feed changes

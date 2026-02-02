@@ -7,9 +7,13 @@ const PaginationContainer = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 2rem 1rem;
+  padding: 0.5rem 1rem;
   border-top: 2px solid ${colors.borderColor};
-  background: linear-gradient(180deg, ${colors.white} 0%, ${colors.lightBg}80 100%);
+  background: linear-gradient(
+    180deg,
+    ${colors.white} 0%,
+    ${colors.lightBg}80 100%
+  );
 `;
 
 const ResultsInfo = styled.p`
@@ -70,12 +74,14 @@ const PageDot = styled.button<{ isActive: boolean }>`
   height: 0.75rem;
   border-radius: 50%;
   border: none;
-  background-color: ${(props) => (props.isActive ? colors.teal : colors.borderColor)};
+  background-color: ${(props) =>
+    props.isActive ? colors.teal : colors.borderColor};
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${(props) => (props.isActive ? colors.teal : colors.lightText)};
+    background-color: ${(props) =>
+      props.isActive ? colors.teal : colors.lightText};
     transform: scale(1.3);
   }
 `;

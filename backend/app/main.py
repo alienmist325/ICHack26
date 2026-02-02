@@ -547,6 +547,7 @@ async def get_travel_times_endpoint(
         HTTPException 503: If routing service is unavailable
     """
     try:
+        print(request)
         # Validate request
         if len(request.destinations) > 25:
             raise HTTPException(
@@ -750,7 +751,9 @@ async def geocode_address(
         logger.info(f"Geocoding address: '{request.address}'")
 
         # Call geocoding service
-        coordinates = geocoding_service.geocode_address(request.address)
+        geocoded_response = geocoding_service.geocode_address(request.address)
+        lat, long, address = geocoded_response
+        coordinates = (lat, long)
 
         if coordinates is None:
             logger.warning(f"No geocoding results found for: '{request.address}'")
@@ -762,13 +765,13 @@ async def geocode_address(
         latitude, longitude = coordinates
 
         logger.info(
-            f"Successfully geocoded '{request.address}' to ({latitude}, {longitude})"
+            f"Successfully geocoded '{request.address}' to ({latitude}, {longitude}) with location '{address}'"
         )
 
         return GeocodeResponse(
             latitude=latitude,
             longitude=longitude,
-            address=request.address,
+            address=address,
         )
 
     except HTTPException:

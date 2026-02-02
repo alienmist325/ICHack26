@@ -4,8 +4,7 @@ import { HouseCard } from "../layout/HouseCard";
 import { FilterPane } from "../layout/FilterPane";
 import { Pagination } from "../layout/Pagination";
 import { LoadingCard } from "../layout/LoadingCard";
-import { colors, spacing } from "../../constants";
-import { Button } from "../layout/Button";
+import { colors } from "../../constants";
 
 const ContentArea = styled.div`
   flex: 1;
